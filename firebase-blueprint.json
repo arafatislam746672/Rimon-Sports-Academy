@@ -1,0 +1,126 @@
+{
+  "entities": {
+    "Player": {
+      "title": "Player",
+      "description": "A sports academy player profile",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "joinedDate": { "type": "string", "format": "date" },
+        "stats": { "type": "object" }
+      },
+      "required": ["name", "stats"]
+    },
+    "Match": {
+      "title": "Match",
+      "description": "A sports match record",
+      "type": "object",
+      "properties": {
+        "sport": { "type": "string", "enum": ["cricket", "football", "badminton"] },
+        "title": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "participants": { "type": "array" },
+        "score": { "type": "object" },
+        "status": { "type": "string", "enum": ["upcoming", "live", "completed"] }
+      },
+      "required": ["sport", "title", "date", "participants", "status"]
+    },
+    "Tournament": {
+      "title": "Tournament",
+      "description": "A sports tournament",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "sport": { "type": "string" },
+        "format": { "type": "string" },
+        "participants": { "type": "array" },
+        "status": { "type": "string" }
+      },
+      "required": ["name", "sport", "format", "status"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Daily training attendance",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "presentPlayerIds": { "type": "array" }
+      },
+      "required": ["date", "presentPlayerIds"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Account details and roles",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["player", "management"] },
+        "playerId": { "type": "string" },
+        "name": { "type": "string" }
+      },
+      "required": ["uid", "email", "role", "name"]
+    },
+    "MatchSubmission": {
+      "title": "Match Submission",
+      "description": "Athlete submitted match stats",
+      "type": "object",
+      "properties": {
+        "playerId": { "type": "string" },
+        "sport": { "type": "string" },
+        "matchTitle": { "type": "string" },
+        "matchDate": { "type": "string" },
+        "scoreData": { "type": "object" },
+        "proofURL": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "submittedAt": { "type": "string" }
+      },
+      "required": ["playerId", "sport", "matchTitle", "matchDate", "scoreData", "proofURL", "status", "submittedAt"]
+    },
+    "Team": {
+      "title": "Team",
+      "description": "A sports team/squad",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "sport": { "type": "string", "enum": ["cricket", "football", "badminton"] },
+        "playerIds": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "logoURL": { "type": "string" },
+        "tournamentIds": { "type": "array" }
+      },
+      "required": ["name", "sport", "playerIds", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/players/{playerId}": {
+      "schema": "Player",
+      "description": "Collection of players"
+    },
+    "/matches/{matchId}": {
+      "schema": "Match",
+      "description": "Collection of matches"
+    },
+    "/tournaments/{tournamentId}": {
+      "schema": "Tournament",
+      "description": "Collection of tournaments"
+    },
+    "/attendance/{attendanceId}": {
+      "schema": "Attendance",
+      "description": "Daily attendance records"
+    },
+    "/profiles/{uid}": {
+      "schema": "UserProfile",
+      "description": "User profiles and roles"
+    },
+    "/submissions/{submissionId}": {
+      "schema": "MatchSubmission",
+      "description": "Score submissions for approval"
+    },
+    "/teams/{teamId}": {
+      "schema": "Team",
+      "description": "Collection of teams"
+    }
+  }
+}

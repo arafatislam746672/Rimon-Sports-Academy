@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. DEFAULT DENY
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. HELPER FUNCTIONS
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && (request.auth.token.email_verified == true || request.auth.token.firebase.sign_in_provider == 'google.com');
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdminEmail() {
+      return isVerified() && request.auth.token.email == "malihajahanshamme@gmail.com";
+    }
+
+    function isManagement() {
+      return isAdminEmail() || (
+        isVerified() && 
+        exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'management'
+      );
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 3. VALIDATION HELPERS
+    function isValidProfile(data) {
+      return data.uid == request.auth.uid &&
+             data.email is string &&
+             data.role in ['player', 'management'] &&
+             data.status in ['pending', 'approved', 'rejected'] &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100;
+    }
+
+    function isValidTeam(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.sport in ['cricket', 'football', 'badminton'] &&
+             data.playerIds is list && data.playerIds.size() <= 50 &&
+             data.createdAt is string;
+    }
+
+    // 4. COLLECTION RULES
+
+    // Profiles: Access to user's own data or for management
+    match /profiles/{uid} {
+      allow get: if isOwner(uid) || isManagement();
+      allow list: if isManagement();
+      allow create: if isOwner(uid) && isValidProfile(incoming());
+      allow update: if isManagement() || (isOwner(uid) && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'photoURL', 'playerId', 'status', 'salutation', 'firstName', 'middleName', 'lastName', 'fatherName', 'motherName', 'shortBio', 'longDescription', 'dateOfBirth', 'gender', 'bloodGroup', 'religion', 'nationality', 'language', 'occupation', 'instagram', 'facebook', 'twitter', 'linkedin', 'phone', 'emergencyPhone', 'addressLine1', 'addressLine2', 'city', 'state', 'country', 'pinCode', 'jerseyName', 'jerseyNumber', 'previousExperience', 'height', 'weight', 'handedness', 'physicallyChallenged', 'idProofType', 'idNumber', 'idProofURL']));
+    }
+
+    // Academy Collections: Publicly readable for athletes to see scores/news and for visitors to see the public dashboard
+    match /players/{playerId} {
+      allow read: if true;
+      allow write: if isManagement();
+    }
+
+    match /teams/{teamId} {
+      allow read: if true;
+      allow write: if isManagement();
+    }
+
+    match /matches/{matchId} {
+      allow read: if true;
+      allow write: if isManagement();
+    }
+
+    match /tournaments/{tournamentId} {
+      allow read: if true;
+      allow write: if isManagement();
+    }
+
+    match /attendance/{attendanceId} {
+      allow read: if isManagement() || (isSignedIn() && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.playerId in resource.data.presentPlayerIds);
+      allow write: if isManagement();
+    }
+
+    match /submissions/{submissionId} {
+      allow list: if isManagement();
+      allow get: if isManagement() || (isSignedIn() && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.playerId == existing().playerId);
+      allow create: if isSignedIn() && (isManagement() || get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.playerId == incoming().playerId);
+      allow update: if isManagement();
+    }
+    
+    // Connection test
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}
