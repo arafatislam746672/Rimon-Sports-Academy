@@ -69,6 +69,7 @@ export default function Teams() {
   const [sportFilter, setSportFilter] = React.useState<Sport | 'all'>('all');
   const [isTeamDialogOpen, setIsTeamDialogOpen] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
 
   // Form state
   const [editingTeam, setEditingTeam] = React.useState<Team | null>(null);
@@ -105,6 +106,39 @@ export default function Teams() {
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Logo must be under 2MB');
+        return;
+      }
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setLogoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Please upload an image file');
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('Logo must be under 2MB');
+        return;
+      }
       setLogoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setLogoPreview(reader.result as string);
@@ -456,26 +490,53 @@ export default function Teams() {
           <div className="p-12 space-y-10 max-h-[65vh] overflow-y-auto no-scrollbar bg-white">
             {/* Logo Section */}
             <div className="flex flex-col items-center gap-6">
-              <div className="relative group">
-                <div className="w-36 h-36 rounded-[54px] border-[10px] border-slate-50 bg-slate-100 overflow-hidden flex items-center justify-center transition-all group-hover:rotate-6 duration-700 shadow-2xl">
+              <div 
+                className={cn(
+                  "relative group cursor-pointer transition-all duration-500",
+                  isDragging ? "scale-110" : ""
+                )}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => logoInputRef.current?.click()}
+              >
+                <div className={cn(
+                  "w-40 h-40 rounded-[54px] border-[10px] bg-slate-100 overflow-hidden flex items-center justify-center transition-all duration-700 shadow-2xl relative",
+                  isDragging ? "border-indigo-500 bg-indigo-50" : "border-slate-50",
+                  !logoPreview && "border-dashed border-slate-200"
+                )}>
                    {logoPreview ? (
-                     <img src={logoPreview} alt="Preview" className="w-full h-full object-cover" />
+                     <div className="w-full h-full relative group">
+                       <img src={logoPreview} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700" />
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Camera size={32} className="text-white" />
+                       </div>
+                     </div>
                    ) : (
-                     <Camera size={48} className="text-slate-200" />
+                     <div className="flex flex-col items-center gap-2 text-slate-300">
+                        <Upload size={40} className={cn(isDragging && "text-indigo-500 animate-bounce")} />
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em]">Drop Insignia</span>
+                     </div>
                    )}
                 </div>
                 <Button 
                   type="button" 
                   variant="secondary" 
                   size="icon" 
-                  className="absolute -bottom-2 -right-2 rounded-2xl h-14 w-14 shadow-2xl bg-indigo-500 text-white hover:bg-slate-900 transition-all border-[6px] border-white"
-                  onClick={() => logoInputRef.current?.click()}
+                  className="absolute -bottom-2 -right-2 rounded-2xl h-14 w-14 shadow-2xl bg-indigo-500 text-white hover:bg-slate-900 transition-all border-[6px] border-white z-10"
                 >
-                   <Upload size={24} />
+                   <Camera size={24} />
                 </Button>
+                
+                {isDragging && (
+                  <div className="absolute inset-0 rounded-[54px] bg-indigo-500/10 border-4 border-indigo-500 animate-pulse pointer-events-none" />
+                )}
               </div>
               <input type="file" className="hidden" ref={logoInputRef} accept="image/*" onChange={handleLogoChange} />
-              <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 tracking-[0.3em]">Unit Insignia</Label>
+              <div className="text-center space-y-1">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 tracking-[0.3em]">Unit Insignia</Label>
+                <p className="text-[7px] font-bold text-slate-300 uppercase tracking-widest">PNG, JPG up to 2MB</p>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-8">
