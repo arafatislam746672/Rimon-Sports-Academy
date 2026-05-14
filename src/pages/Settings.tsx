@@ -148,16 +148,18 @@ export default function Settings() {
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator className="bg-secondary my-1" />
-                  <DropdownMenuItem 
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer hover:bg-red-50 focus:bg-red-50 text-red-500 transition-colors group"
-                    onClick={async () => {
-                      await logout();
-                      window.location.href = '/';
-                    }}
-                  >
-                    <LogOut size={16} className="group-hover:translate-x-1 transition-transform" />
-                    <span className="text-xs font-black uppercase">Sign Out</span>
-                  </DropdownMenuItem>
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem 
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer hover:bg-red-50 focus:bg-red-50 text-red-500 transition-colors group"
+                      onClick={async () => {
+                        await logout();
+                        window.location.href = '/';
+                      }}
+                    >
+                      <LogOut size={16} className="group-hover:translate-x-1 transition-transform" />
+                      <span className="text-xs font-black uppercase">Sign Out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
                 </DropdownMenuContent>
              </DropdownMenu>
 
@@ -171,9 +173,9 @@ export default function Settings() {
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 sm:gap-8 px-6 sm:px-12 -mt-16 sm:-mt-10 relative z-10 w-full">
+        <div className="flex flex-col sm:flex-row items-center sm:items-end gap-10 sm:gap-14 px-6 sm:px-16 -mt-12 sm:-mt-14 relative z-10 w-full">
           <div className="relative shrink-0">
-            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-[32px] sm:rounded-[48px] border-[6px] border-secondary bg-white shadow-2xl overflow-hidden group-hover:scale-105 transition-transform duration-500">
+            <div className="w-32 h-32 sm:w-44 sm:h-44 rounded-[40px] sm:rounded-[56px] border-[8px] border-secondary bg-white shadow-2xl overflow-hidden group-hover:scale-105 transition-transform duration-500">
                {profile?.photoURL ? (
                  <img src={profile.photoURL} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                ) : (
@@ -183,10 +185,10 @@ export default function Settings() {
                )}
             </div>
             <button 
-              className="absolute bottom-2 right-2 p-3 bg-primary text-secondary rounded-2xl border-4 border-secondary shadow-lg hover:scale-110 active:scale-95 transition-all outline-none"
+              className="absolute -bottom-2 -right-2 p-3.5 bg-primary text-secondary rounded-2xl border-4 border-secondary shadow-lg hover:scale-110 active:scale-95 transition-all outline-none z-20"
               onClick={() => document.getElementById('avatar_upload')?.click()}
             >
-              <Camera size={20} />
+              <Camera size={22} />
             </button>
             <input 
               id="avatar_upload"
@@ -209,30 +211,30 @@ export default function Settings() {
             />
           </div>
           
-          <div className="pb-2 space-y-3 text-center sm:text-left flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-start gap-3">
-              <h1 className="text-2xl sm:text-4xl font-black text-primary tracking-tighter drop-shadow-sm truncate">
+          <div className="pb-4 space-y-4 text-center sm:text-left flex-1 min-w-0 sm:ml-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-start gap-4">
+              <h1 className="text-3xl sm:text-5xl font-black text-primary tracking-tighter drop-shadow-sm truncate">
                 {profile?.name || 'Anonymous Athlete'}
               </h1>
-              <div className="flex items-center justify-center gap-2">
-                <div className="p-1 px-2 sm:px-3 bg-blue-500/10 rounded-lg border border-blue-500/20 shrink-0">
-                  <CheckCircle2 size={16} className="sm:w-[18px] sm:h-[18px] text-blue-500" />
+              <div className="flex items-center justify-center gap-3">
+                <div className="p-1 px-3 bg-blue-500/10 rounded-lg border border-blue-500/20 shrink-0">
+                  <CheckCircle2 size={18} className="sm:w-5 sm:h-5 text-blue-500" />
                 </div>
-                <Badge variant="outline" className="sm:hidden text-[8px] font-black">{profile?.role === 'management' ? 'ADMIN' : 'PLAYER'}</Badge>
+                <Badge variant="outline" className="sm:hidden text-[9px] font-black px-3 py-1 bg-white/50">{profile?.role === 'management' ? 'ADMIN' : 'PLAYER'}</Badge>
               </div>
             </div>
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 text-text-light font-black text-[9px] sm:text-[10px] uppercase tracking-widest">
-               <div className="hidden sm:flex items-center gap-2 bg-secondary px-3 py-1.5 rounded-xl border border-border-custom shadow-sm">
-                 <Trophy size={12} className="sm:w-[14px] sm:h-[14px] text-accent" />
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6 text-text-light font-black text-[10px] sm:text-xs uppercase tracking-widest">
+               <div className="hidden sm:flex items-center gap-2.5 bg-white px-4 py-2 rounded-2xl border border-border-custom shadow-sm">
+                 <Trophy size={14} className="text-accent" />
                  <span>{profile?.role === 'management' ? 'ADMIN' : 'PLAYER'}</span>
                </div>
-               <div className="flex items-center gap-2 bg-white/50 backdrop-blur-sm sm:bg-transparent px-2 py-1 rounded-lg sm:p-0">
-                 <MapPin size={12} className="sm:w-[14px] sm:h-[14px] text-primary/40" />
-                 <span className="truncate max-w-[100px] sm:max-w-none">{formData.city || 'LOCATION'}</span>
+               <div className="flex items-center gap-2 bg-white/40 backdrop-blur-sm sm:bg-transparent px-3 py-1.5 rounded-xl sm:p-0">
+                 <MapPin size={14} className="text-primary/40" />
+                 <span className="truncate max-w-[120px] sm:max-w-none">{formData.city || 'LOCATION'}</span>
                </div>
-               <div className="flex items-center gap-2 bg-white/50 backdrop-blur-sm sm:bg-transparent px-2 py-1 rounded-lg sm:p-0">
-                 <Mail size={12} className="sm:w-[14px] sm:h-[14px] text-primary/40" />
-                 <span className="truncate max-w-[150px] sm:max-w-none">{user?.email}</span>
+               <div className="flex items-center gap-2 bg-white/40 backdrop-blur-sm sm:bg-transparent px-3 py-1.5 rounded-xl sm:p-0">
+                 <Mail size={14} className="text-primary/40" />
+                 <span className="truncate max-w-[180px] sm:max-w-none">{user?.email}</span>
                </div>
             </div>
           </div>
@@ -240,7 +242,7 @@ export default function Settings() {
       </div>
 
       <div className="mt-8 sm:mt-12">
-        <Tabs defaultValue="account" className="w-full flex flex-col lg:flex-row gap-8 items-start">
+        <Tabs defaultValue="account" className="w-full flex flex-col lg:flex-row-reverse gap-8 items-start">
           {/* Sub Navigation Sidebar */}
           <TabsList className="flex flex-row lg:flex-col w-full lg:w-72 h-auto bg-white border border-border-custom p-3 rounded-[32px] lg:sticky lg:top-8 shrink-0 overflow-x-auto lg:overflow-visible shadow-sm no-scrollbar">
              <div className="hidden lg:block px-4 py-3 mb-2">

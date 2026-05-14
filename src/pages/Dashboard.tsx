@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { 
   Users, 
+  Flag,
   Trophy, 
   Target, 
   TrendingUp,
@@ -37,13 +38,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { dataService } from '@/services/dataService';
-import { Player, Match, MatchSubmission, Sport, PlayerStatus } from '@/types';
+import { Player, Match, MatchSubmission, Sport, PlayerStatus, Team } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { motion } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
 
-function ManagementDashboard({ players, matches }: { players: Player[], matches: Match[] }) {
+function ManagementDashboard({ players, matches, teams }: { players: Player[], matches: Match[], teams: Team[] }) {
   const handleBulkImport = async () => {
     const playerList = [
       ["ARIF", "BOTH", "18+", "FULL TIME", "ACTIVE"],
@@ -155,162 +156,213 @@ function ManagementDashboard({ players, matches }: { players: Player[], matches:
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-primary tracking-tight uppercase italic">Academy <span className="text-accent">Overview</span></h1>
-          <p className="text-text-light text-sm font-bold opacity-60">Full administrative control of academy operations and data.</p>
+    <div className="space-y-10">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="space-y-1">
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic flex items-center gap-3">
+            Academy <span className="bg-indigo-500 text-white px-3 py-1 rounded-2xl skew-x-[-6deg] not-italic">Control</span>
+          </h1>
+          <p className="text-slate-400 text-sm font-bold uppercase tracking-[0.2em] opacity-80">Operational Intelligence & Oversight</p>
         </div>
-        <div className="flex gap-3">
-          <Button onClick={handleBulkImport} className="bg-accent text-primary hover:bg-accent/90 font-black uppercase text-xs tracking-widest h-12 px-6">
-             Bulk Import
+        <div className="flex gap-4">
+          <Button onClick={handleBulkImport} variant="outline" className="border-indigo-500/20 text-indigo-600 hover:bg-indigo-50 font-black uppercase text-[10px] tracking-widest h-14 px-8 rounded-2xl transition-all">
+             Initialize Bulk Feed
           </Button>
           <Link to="/players">
-            <Button className="bg-primary text-secondary hover:bg-primary/90 font-black uppercase text-xs tracking-widest h-12 px-8">
-              <Plus size={16} className="mr-2" /> Add Player
+            <Button className="bg-slate-900 text-white hover:bg-indigo-600 font-black uppercase text-[10px] tracking-widest h-14 px-10 rounded-2xl shadow-xl shadow-slate-900/10 active:scale-95 transition-all">
+              <Plus size={16} className="mr-2" /> Register Talent
             </Button>
           </Link>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
         {[
-          { label: 'Total Athletes', value: players.length, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: 'Active Matches', value: matches.filter(m => m.status === 'live').length, icon: Activity, color: 'text-red-600', bg: 'bg-red-50' },
-          { label: 'Tournaments', value: 3, icon: Trophy, color: 'text-accent', bg: 'bg-accent/10' },
-          { label: 'Attendance', value: '94%', icon: ClipboardCheck, color: 'text-green-600', bg: 'bg-green-50' },
+          { label: 'Registered Athletes', value: players.length, icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-500/10', trend: '+12% from last month', link: '/players' },
+          { label: 'Registered Teams', value: teams.length, icon: Flag, color: 'text-rose-500', bg: 'bg-rose-500/10', trend: 'Active squads', link: '/teams' },
+          { label: 'Active Deployments', value: matches.filter(m => m.status === 'live').length, icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/10', trend: 'Live Monitoring', link: '/schedule' },
+          { label: 'Tournament Assets', value: 3, icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-500/10', trend: 'Next kick-off in 4h', link: '/tournaments' },
+          { label: 'Efficiency Rating', value: '94.2%', icon: ClipboardCheck, color: 'text-blue-500', bg: 'bg-blue-500/10', trend: 'Optimal threshold' },
         ].map((stat, i) => (
-          <Card key={i} className="shadow-card border-border-custom hover:border-primary/20 transition-all">
-            <CardContent className="p-6">
-               <div className="flex items-center justify-between">
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            {stat.link ? (
+              <Link to={stat.link}>
+                <Card className="elite-card group overflow-hidden border-none shadow-xl shadow-slate-200/40 hover:shadow-2xl transition-all">
+                  <CardContent className="p-8">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className={cn("p-4 rounded-2xl transition-transform group-hover:rotate-6", stat.bg)}>
+                          <stat.icon size={22} className={stat.color} />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.trend}</span>
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{stat.label}</p>
+                        <p className="text-4xl font-black text-slate-900 tracking-tight italic">{stat.value}</p>
+                    </div>
+                  </CardContent>
+                  <div className={cn("h-1.5 w-full", stat.bg)} />
+                </Card>
+              </Link>
+            ) : (
+              <Card className="elite-card group overflow-hidden border-none shadow-xl shadow-slate-200/40">
+                <CardContent className="p-8">
+                  <div className="flex items-center justify-between mb-4">
+                      <div className={cn("p-4 rounded-2xl transition-transform group-hover:rotate-6", stat.bg)}>
+                        <stat.icon size={22} className={stat.color} />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.trend}</span>
+                  </div>
                   <div>
-                     <p className="text-[10px] font-black text-text-light uppercase tracking-widest mb-1">{stat.label}</p>
-                     <p className="text-2xl font-black text-primary">{stat.value}</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{stat.label}</p>
+                      <p className="text-4xl font-black text-slate-900 tracking-tight italic">{stat.value}</p>
                   </div>
-                  <div className={cn("p-3 rounded-xl", stat.bg)}>
-                     <stat.icon size={20} className={stat.color} />
-                  </div>
-               </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+                <div className={cn("h-1.5 w-full", stat.bg)} />
+              </Card>
+            )}
+          </motion.div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Live Scoring Engine Card */}
-        <Card className="lg:col-span-2 shadow-card border-border-custom overflow-hidden">
-          <CardHeader className="border-b border-muted pb-4 flex flex-row items-center justify-between space-y-0 bg-muted/10">
+        <Card className="lg:col-span-2 elite-card border-none shadow-2xl shadow-slate-200/50 overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-10 opacity-[0.03] -rotate-12">
+            <Activity size={320} />
+          </div>
+          <CardHeader className="border-b border-slate-100 pb-6 flex flex-row items-center justify-between space-y-0 bg-slate-50/50 px-10">
             <div>
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-primary">Live Match Monitor</CardTitle>
-              <CardDescription className="text-[10px] uppercase font-bold text-text-light mt-1 italic">Real-time academy scoreboard</CardDescription>
+              <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">Live Telemetry Feed</CardTitle>
+              <CardDescription className="text-xs font-bold text-slate-400 mt-1 uppercase italic">Unified Academy Scoreboard</CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-               <span className="text-[10px] font-black uppercase text-green-600">Sync Active</span>
+            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+               <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Secure Uplink Active</span>
             </div>
           </CardHeader>
-          <CardContent className="p-8">
-            <div className="space-y-8">
-              <div className="flex items-center justify-center gap-12">
-                 <div className="text-center space-y-2">
-                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center text-primary font-black text-xl border-2 border-primary/10 mx-auto">W</div>
-                    <p className="text-xs font-black text-primary uppercase">Warriors</p>
-                 </div>
-                 <div className="text-center space-y-1">
-                    <p className="text-5xl font-black text-primary tracking-tighter">2 - 1</p>
-                    <Badge className="bg-red-50 text-red-600 text-[10px] font-black tracking-widest border-red-200">LIVE: 65'</Badge>
+          <CardContent className="p-12 relative z-10">
+            <div className="space-y-12">
+              <div className="flex items-center justify-center gap-16 md:gap-24">
+                 <div className="text-center space-y-4 group cursor-pointer">
+                    <div className="w-28 h-28 rounded-3xl bg-slate-900 flex items-center justify-center text-white font-black text-3xl border-8 border-slate-100 shadow-2xl group-hover:scale-105 transition-transform">W</div>
+                    <p className="text-sm font-black text-slate-900 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-lg">Warriors</p>
                  </div>
                  <div className="text-center space-y-2">
-                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center text-primary font-black text-xl border-2 border-primary/10 mx-auto">T</div>
-                    <p className="text-xs font-black text-primary uppercase">Titans</p>
+                    <p className="text-7xl font-black text-slate-900 tracking-tighter italic">2<span className="text-indigo-500 mx-2">-</span>1</p>
+                    <div className="inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-1.5 rounded-full border border-red-100">
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Live: 65'</span>
+                    </div>
+                 </div>
+                 <div className="text-center space-y-4 group cursor-pointer">
+                    <div className="w-28 h-28 rounded-3xl bg-indigo-500 flex items-center justify-center text-white font-black text-3xl border-8 border-slate-100 shadow-2xl group-hover:scale-105 transition-transform">T</div>
+                    <p className="text-sm font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-3 py-1 rounded-lg">Titans</p>
                  </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                 <Button className="bg-primary text-secondary font-black uppercase text-xs tracking-widest h-12">Update Score</Button>
-                 <Button variant="outline" className="border-primary text-primary font-black uppercase text-xs tracking-widest h-12">Match Center</Button>
+              <div className="grid grid-cols-2 gap-6 max-w-lg mx-auto">
+                 <Button className="bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest h-14 rounded-2xl shadow-xl shadow-slate-900/10 hover:bg-slate-800">Update Payload</Button>
+                 <Button variant="outline" className="border-slate-200 text-slate-500 font-black uppercase text-[10px] tracking-widest h-14 rounded-2xl hover:bg-slate-50">Command Center</Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Top Performers */}
-        <Card className="shadow-card border-border-custom overflow-hidden">
-          <CardHeader className="border-b border-muted bg-muted/5">
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-primary">Top Performers</CardTitle>
+        <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 overflow-hidden">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/50 px-8 py-6">
+            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">Elite Talent Index</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-             <div className="divide-y divide-muted">
-                {players.slice(0, 4).map((p, i) => (
-                   <div key={p.id} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors cursor-pointer group">
-                      <div className="flex items-center gap-3">
-                         <span className="text-xs font-black text-text-light/30">{i + 1}</span>
-                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs uppercase">
-                            {p.name[0]}
+             <div className="divide-y divide-slate-50">
+                {players.slice(0, 5).map((p, i) => (
+                   <div key={p.id} className="px-8 py-5 flex items-center justify-between hover:bg-slate-50 transition-all cursor-pointer group">
+                      <div className="flex items-center gap-4">
+                         <span className="text-xs font-black text-slate-200 w-4">{i + 1}</span>
+                         <div className="w-12 h-12 rounded-2xl bg-indigo-500/5 flex items-center justify-center text-indigo-500 font-black text-sm uppercase border border-indigo-500/10 group-hover:bg-indigo-500 group-hover:text-white transition-all shadow-sm">
+                            {p.photoURL ? <img src={p.photoURL} alt={p.name} className="w-full h-full object-cover rounded-2xl" /> : p.name[0]}
                          </div>
                          <div>
-                            <p className="text-sm font-black text-primary group-hover:text-accent transition-colors">{p.name}</p>
-                            <p className="text-[10px] font-bold text-text-light uppercase">{p.stats.cricket.matches > 0 ? 'Cricket' : 'Football'}</p>
+                            <p className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{p.name}</p>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-60 italic">{p.primarySport}</p>
                          </div>
                       </div>
                       <div className="text-right">
-                         <p className="text-sm font-black text-primary">
+                         <p className="text-base font-black text-slate-900 tracking-tight">
                             {p.stats.cricket.matches > 0 ? p.stats.cricket.runs : p.stats.football.goals}
                          </p>
-                         <p className="text-[9px] font-bold text-text-light uppercase">{p.stats.cricket.matches > 0 ? 'Runs' : 'Goals'}</p>
+                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-60 italic">{p.stats.cricket.matches > 0 ? 'Score' : 'Goals'}</p>
                       </div>
                    </div>
                 ))}
              </div>
-             <div className="p-4 bg-muted/10">
-                <Button variant="link" className="w-full text-xs font-black uppercase text-primary tracking-widest p-0 h-auto">
-                   View Full Leaderboard <ArrowRight size={14} className="ml-2" />
+             <div className="p-8 bg-slate-50/50">
+                <Button variant="link" className="w-full text-[10px] font-black uppercase text-indigo-500 tracking-[0.2em] p-0 h-auto hover:text-indigo-600 underline">
+                   Access Global Rankings <ArrowRight size={14} className="ml-2" />
                 </Button>
              </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         <Card className="shadow-card border-border-custom p-6">
-            <h4 className="text-xs font-black text-primary uppercase tracking-widest mb-6">Match Frequency (Last 6 Months)</h4>
-            <div className="h-[250px] w-full mt-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+         <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 p-10">
+            <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-10 flex items-center gap-3">
+              <TrendingUp size={16} className="text-indigo-500" /> Deployment Frequency (H1 2026)
+            </h4>
+            <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={[
-                  { name: 'Jan', matches: 12 },
-                  { name: 'Feb', matches: 19 },
-                  { name: 'Mar', matches: 15 },
-                  { name: 'Apr', matches: 22 },
-                  { name: 'May', matches: 30 },
-                  { name: 'Jun', matches: 25 },
+                  { name: 'JAN', matches: 12 },
+                  { name: 'FEB', matches: 19 },
+                  { name: 'MAR', matches: 15 },
+                  { name: 'APR', matches: 22 },
+                  { name: 'MAY', matches: 30 },
+                  { name: 'JUN', matches: 25 },
                 ]}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eee" vertical={false} />
-                  <XAxis dataKey="name" fontSize={10} fontWeight="bold" tick={{fill: '#4A4A4A'}} axisLine={false} tickLine={false} />
-                  <YAxis fontSize={10} fontWeight="bold" tick={{fill: '#4A4A4A'}} axisLine={false} tickLine={false} />
+                  <defs>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366F1" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#0F172A" stopOpacity={1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="name" fontSize={9} fontWeight="black" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} dy={10} />
+                  <YAxis fontSize={9} fontWeight="black" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontWeight: 'bold' }}
+                    cursor={{fill: '#f8fafc'}}
+                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', fontWeight: '900', textTransform: 'uppercase', fontSize: '10px', background: 'rgba(15, 23, 42, 0.95)', color: 'white' }}
                   />
-                  <Bar dataKey="matches" fill="#0F172A" radius={[4, 4, 0, 0]} barSize={24} />
+                  <Bar dataKey="matches" fill="url(#barGradient)" radius={[8, 8, 4, 4]} barSize={40} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
          </Card>
 
-          <Card className="shadow-card border-border-custom overflow-hidden">
-            <CardHeader className="border-b border-muted">
-               <CardTitle className="text-xs font-black text-primary uppercase tracking-widest">Academy News Feed</CardTitle>
+          <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 overflow-hidden">
+            <CardHeader className="border-b border-slate-100 px-10 py-8 bg-slate-50/50">
+               <CardTitle className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Intelligence Briefing</CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-4">
+            <CardContent className="p-10 space-y-6">
                {[
-                 { title: "Tournament Registration Open", desc: "Summer Cup 2026 registration is now open.", type: "news" },
-                 { title: "Weekly Performance Review", desc: "Coaches have updated the latest training logs.", type: "news" },
-                 { title: "New Training Facility", desc: "Academy Indoor Court B is now open for bookings.", type: "news" }
+                 { title: "Summer Cup Deployment", desc: "Category A athletes approved for regional series kickoff.", date: "14 May" },
+                 { title: "Logistical Readiness", desc: "Training Facility B recalibrated for monsoon session specs.", date: "12 May" },
+                 { title: "New Asset Acquisition", desc: "Professional grade telemetry sensors deployed to pitch A.", date: "10 May" }
                ].map((event, i) => (
-                  <div key={i} className="flex gap-4 p-4 rounded-xl bg-muted/20 border border-muted/50">
-                     <div className="w-2 h-2 rounded-full mt-1.5 shrink-0 bg-accent" />
+                  <div key={i} className="flex gap-6 p-6 rounded-3xl bg-slate-50/50 border border-slate-100 hover:border-indigo-500/20 transition-all cursor-pointer group">
+                     <div className="shrink-0 flex flex-col items-center">
+                        <span className="text-base font-black text-slate-900 italic tracking-tighter leading-none">{event.date.split(' ')[0]}</span>
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{event.date.split(' ')[1]}</span>
+                     </div>
+                     <div className="w-px bg-slate-200 h-10 self-center" />
                      <div>
-                        <p className="text-xs font-black text-primary uppercase tracking-tight">{event.title}</p>
-                        <p className="text-xs text-text-light font-medium mt-1">{event.desc}</p>
+                        <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight group-hover:text-indigo-600 transition-colors">{event.title}</p>
+                        <p className="text-xs text-slate-400 font-bold mt-1 leading-relaxed italic opacity-80">{event.desc}</p>
                      </div>
                   </div>
                ))}
@@ -325,76 +377,92 @@ function PlayerDashboard({ player, matches }: { player: Player, matches: Match[]
   const navigate = useNavigate();
   
   const personalStats = React.useMemo(() => {
-    const stats: { label: string, value: any, icon: any }[] = [];
+    const stats: { label: string, value: any, icon: any, color: string, bg: string }[] = [];
     if (player.stats.cricket.matches > 0) {
-      stats.push({ label: 'Cricket Runs', value: player.stats.cricket.runs, icon: Trophy });
-      stats.push({ label: 'Avg Strike Rate', value: player.stats.cricket.strikeRate, icon: Activity });
+      stats.push({ label: 'Cricket Runs', value: player.stats.cricket.runs, icon: Trophy, color: 'text-indigo-500', bg: 'bg-indigo-500/10' });
+      stats.push({ label: 'Avg Strike Rate', value: player.stats.cricket.strikeRate, icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/10' });
     }
     if (player.stats.football.matches > 0) {
-      stats.push({ label: 'Football Goals', value: player.stats.football.goals, icon: Target });
-      stats.push({ label: 'Total Assists', value: player.stats.football.assists, icon: TrendingUp });
+      stats.push({ label: 'Football Goals', value: player.stats.football.goals, icon: Target, color: 'text-indigo-500', bg: 'bg-indigo-500/10' });
+      stats.push({ label: 'Total Assists', value: player.stats.football.assists, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' });
     }
     if (player.stats.badminton.matches > 0) {
-      stats.push({ label: 'Badminton Wins', value: player.stats.badminton.wins, icon: Award });
-      stats.push({ label: 'Win Rate', value: `${player.stats.badminton.winRate}%`, icon: TrendingUp });
+      stats.push({ label: 'Badminton Wins', value: player.stats.badminton.wins, icon: Award, color: 'text-indigo-500', bg: 'bg-indigo-500/10' });
+      stats.push({ label: 'Win Rate', value: `${player.stats.badminton.winRate}%`, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' });
     }
     return stats;
   }, [player]);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-primary tracking-tight uppercase">My <span className="text-accent">Athlete Dashboard</span></h1>
-          <p className="text-text-light text-sm font-bold opacity-60">Track your personal development and academy progress.</p>
+    <div className="space-y-10 animate-in fade-in duration-500">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="space-y-1">
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic flex items-center gap-3">
+            Athlete <span className="bg-indigo-500 text-white px-3 py-1 rounded-2xl skew-x-[-6deg] not-italic">Dashboard</span>
+          </h1>
+          <p className="text-slate-400 text-sm font-bold uppercase tracking-[0.2em] opacity-80">Personal Development & Performance Metrics</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           <Button 
             onClick={() => navigate(`/players/${player.id}`)}
-            className="bg-primary text-secondary hover:bg-primary/90 font-black uppercase text-xs tracking-widest h-12 px-8"
+            className="bg-slate-900 text-white hover:bg-indigo-600 font-black uppercase text-[10px] tracking-widest h-14 px-10 rounded-2xl shadow-xl shadow-slate-900/10 transition-all active:scale-95"
           >
-            Submit Match Score
+            <Plus size={16} className="mr-2" /> Submit Match Score
           </Button>
         </div>
       </header>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {personalStats.map((stat, i) => (
-          <Card key={i} className="shadow-card border-border-custom bg-white">
-            <CardContent className="p-6">
-               <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-primary/5 text-primary">
-                     <stat.icon size={20} />
-                  </div>
-                  <div>
-                     <p className="text-[10px] font-black text-text-light uppercase tracking-widest">{stat.label}</p>
-                     <p className="text-2xl font-black text-primary">{stat.value}</p>
-                  </div>
-               </div>
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <Card className="elite-card group overflow-hidden border-none shadow-xl shadow-slate-200/40">
+              <CardContent className="p-8">
+                 <div className="flex items-center justify-between mb-4">
+                    <div className={cn("p-4 rounded-2xl transition-transform group-hover:rotate-6", stat.bg)}>
+                       <stat.icon size={22} className={stat.color} />
+                    </div>
+                 </div>
+                 <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{stat.label}</p>
+                    <p className="text-4xl font-black text-slate-900 tracking-tight italic">{stat.value}</p>
+                 </div>
+              </CardContent>
+              <div className={cn("h-1.5 w-full", stat.bg)} />
+            </Card>
+          </motion.div>
+        ))}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Card className="elite-card bg-slate-900 border-none shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-700">
+               <Users size={120} className="text-indigo-400" />
+            </div>
+            <CardContent className="p-8 relative z-10">
+               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-1.5 opacity-80">Academy Status</p>
+               <h3 className="text-4xl font-black italic text-white tracking-widest uppercase">
+                 {player.status === 'elite' ? 'Elite' : player.status === 'training' ? 'Active' : 'Pending'}
+               </h3>
+               <p className="text-[9px] font-bold text-white/40 uppercase tracking-[0.3em] mt-2">Operational Tier A</p>
             </CardContent>
           </Card>
-        ))}
-        {/* Placeholder for unified stats */}
-        <Card className="shadow-card border-border-custom bg-primary text-secondary">
-          <CardContent className="p-6">
-             <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-white/10">
-                   <Users size={20} />
-                </div>
-                <div>
-                   <p className="text-[10px] font-black text-secondary/60 uppercase tracking-widest">Academy Status</p>
-                   <p className="text-2xl font-black">{player.joinedDate ? 'Active' : 'Pending'}</p>
-                </div>
-             </div>
-          </CardContent>
-        </Card>
+        </motion.div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
          {/* Performance Chart */}
-         <Card className="lg:col-span-2 shadow-card border-border-custom p-8">
-            <h4 className="text-xs font-black text-primary uppercase tracking-widest mb-8">Personal Performance Trend</h4>
+         <Card className="lg:col-span-2 elite-card border-none shadow-2xl shadow-slate-200/50 p-10">
+            <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-10 flex items-center gap-3">
+              <Activity size={16} className="text-indigo-500" /> Performance Metric Deviation
+            </h4>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={[
@@ -405,69 +473,74 @@ function PlayerDashboard({ player, matches }: { player: Player, matches: Match[]
                   { name: 'Wk 5', score: 35 },
                   { name: 'Wk 6', score: 55 },
                 ]}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                  <XAxis dataKey="name" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
-                  <YAxis fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="name" fontSize={9} fontWeights="black" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} dy={10} />
+                  <YAxis fontSize={9} fontWeights="black" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', fontWeight: '900', textTransform: 'uppercase', fontSize: '10px', background: 'rgba(15, 23, 42, 0.95)', color: 'white' }}
                   />
-                  <Line type="monotone" dataKey="score" stroke="#0F172A" strokeWidth={4} dot={{ r: 4, fill: '#0F172A' }} activeDot={{ r: 8 }} />
+                  <Line type="monotone" dataKey="score" stroke="#6366F1" strokeWidth={5} dot={{ r: 6, fill: '#6366F1', stroke: 'white', strokeWidth: 3 }} activeDot={{ r: 10, fill: '#0F172A' }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
          </Card>
 
          {/* Upcoming Personal Match */}
-         <Card className="shadow-card border-border-custom bg-secondary/30 flex flex-col">
-            <CardHeader className="border-b border-primary/10">
-               <CardTitle className="text-xs font-black text-primary uppercase tracking-widest">Next Feature Match</CardTitle>
+         <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 bg-white overflow-hidden relative group">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform">
+               <CalendarIcon size={200} />
+            </div>
+            <CardHeader className="border-b border-slate-50 px-10 py-8 bg-slate-50/50">
+               <CardTitle className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Next Deployment</CardTitle>
             </CardHeader>
-            <CardContent className="p-8 flex-1 flex flex-col justify-center text-center space-y-6">
-               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-sm border border-primary/5">
-                  <CalendarIcon size={32} className="text-primary" />
+            <CardContent className="p-10 flex flex-col justify-center text-center space-y-8">
+               <div className="w-24 h-24 bg-slate-50 rounded-[32px] flex items-center justify-center mx-auto shadow-inner border border-slate-100 group-hover:rotate-6 transition-transform">
+                  <CalendarIcon size={40} className="text-indigo-500" />
                </div>
                <div>
-                  <h5 className="text-lg font-black text-primary tracking-tight">Inter-Club Qualifier</h5>
-                  <p className="text-xs font-bold text-text-light uppercase mt-1">Saturday, April 25th • 10:00 AM</p>
+                  <h5 className="text-2xl font-black text-slate-900 tracking-tight uppercase italic mb-1">Inter-Club Qualifier</h5>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Saturday, May 25th • 10:00 AM</p>
                </div>
-               <div className="pt-4 space-y-3">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-text-light px-2">
-                     <span>Sport</span>
-                     <span className="text-primary uppercase">Football</span>
+               <div className="pt-6 grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                     <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Sector</p>
+                     <p className="text-[10px] font-black text-slate-900 uppercase italic">Main Turf</p>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] font-bold text-text-light px-2">
-                     <span>Venue</span>
-                     <span className="text-primary uppercase">Main Academy Turf</span>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                     <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Vertical</p>
+                     <p className="text-[10px] font-black text-slate-900 uppercase italic">{player.primarySport}</p>
                   </div>
                </div>
-               <Button className="w-full bg-primary text-secondary font-black uppercase text-xs h-12">View Details</Button>
+               <Button className="w-full bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest h-14 rounded-2xl shadow-xl shadow-slate-900/10 hover:bg-indigo-600 transition-all">Mission Analysis</Button>
             </CardContent>
          </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
          {/* Recent Submissions */}
-         <Card className="shadow-card border-border-custom overflow-hidden">
-            <CardHeader className="border-b border-muted bg-muted/5 flex flex-row items-center justify-between">
-               <CardTitle className="text-xs font-black text-primary uppercase tracking-widest">Score Submissions</CardTitle>
+         <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 overflow-hidden">
+            <CardHeader className="border-b border-slate-50 bg-slate-50/50 px-8 py-6">
+               <CardTitle className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Log Submissions</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-               <div className="divide-y divide-muted">
+               <div className="divide-y divide-slate-50">
                   {[
-                    { title: "Friendly v Titans", date: "Apr 18", status: "pending" },
-                    { title: "Weekend Knockout", date: "Apr 12", status: "approved" }
+                    { title: "Friendly v Titans", date: "18 May", status: "pending" },
+                    { title: "Weekend Knockout", date: "12 May", status: "approved" }
                   ].map((sub, i) => (
-                    <div key={i} className="p-4 flex items-center justify-between hover:bg-muted/10">
-                       <div className="flex items-center gap-3">
-                          <Clock size={16} className="text-primary/40" />
+                    <div key={i} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-all cursor-pointer group">
+                       <div className="flex items-center gap-4">
+                          <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-100 group-hover:text-indigo-500 transition-colors">
+                            <Clock size={18} />
+                          </div>
                           <div>
-                             <p className="text-xs font-black text-primary">{sub.title}</p>
-                             <p className="text-[9px] font-bold text-text-light uppercase">{sub.date}</p>
+                             <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight italic">{sub.title}</p>
+                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{sub.date}</p>
                           </div>
                        </div>
                        <Badge className={cn(
-                         "text-[8px] font-black uppercase tracking-widest",
-                         sub.status === 'approved' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-amber-50 text-amber-600 border-amber-100'
+                         "text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border-none",
+                         sub.status === 'approved' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
                        )}>
                           {sub.status}
                        </Badge>
@@ -478,37 +551,41 @@ function PlayerDashboard({ player, matches }: { player: Player, matches: Match[]
          </Card>
 
          {/* Academy News Feed */}
-         <Card className="shadow-card border-border-custom overflow-hidden">
-            <CardHeader className="border-b border-muted bg-muted/5">
-               <CardTitle className="text-xs font-black text-primary uppercase tracking-widest">Academy News Feed</CardTitle>
+         <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 overflow-hidden">
+            <CardHeader className="border-b border-slate-50 bg-slate-50/50 px-8 py-6">
+               <CardTitle className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Intelligence Feed</CardTitle>
             </CardHeader>
-            <CardContent className="p-4 space-y-3">
+            <CardContent className="p-6 space-y-4">
                {[
-                 { title: "Summer Cup 2026", date: "Apr 20", desc: "Registration is now open for all categories." },
-                 { title: "New Training Times", date: "Apr 19", desc: "Monday sessions shifted to 4:00 PM." }
+                 { title: "Summer Cup 2026", date: "20 May", desc: "Registration protocols are now active for all categories." },
+                 { title: "New Training Specs", date: "19 May", desc: "Monday sessions recalibrated to 16:00 hours." }
                ].map((news, i) => (
-                  <div key={i} className="p-3 rounded-lg border border-border-custom bg-secondary/20">
-                     <div className="flex items-center justify-between mb-1">
-                        <p className="text-[10px] font-black text-primary uppercase">{news.title}</p>
-                        <span className="text-[8px] font-bold text-text-light">{news.date}</span>
+                  <div key={i} className="p-5 rounded-[28px] border border-slate-50 bg-slate-50/30 hover:bg-slate-50 hover:border-indigo-500/20 transition-all group cursor-pointer">
+                     <div className="flex items-center justify-between mb-2">
+                        <p className="text-[11px] font-black text-slate-900 uppercase italic tracking-tight">{news.title}</p>
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{news.date}</span>
                      </div>
-                     <p className="text-[10px] font-medium text-text-light line-clamp-1">{news.desc}</p>
+                     <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-wide italic opacity-80">{news.desc}</p>
                   </div>
                ))}
             </CardContent>
          </Card>
 
          {/* Training Tips */}
-         <Card className="shadow-card border-border-custom overflow-hidden bg-primary text-secondary p-8">
-            <CardHeader className="p-0 mb-6">
-               <CardTitle className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2 underline underline-offset-4">
-                  <Activity size={16} /> Performance Tip
-               </CardTitle>
-            </CardHeader>
-            <div className="space-y-4">
-               <h4 className="text-xl font-black leading-tight tracking-tight">Improve your reaction time with "Shadow Training".</h4>
-               <p className="text-sm font-medium opacity-70">Mimic your sport's key movements without the ball to build muscle memory and speed accuracy.</p>
-               <Button variant="outline" className="border-white/20 text-white font-black uppercase text-[10px] h-10 hover:bg-white/10">Read Guide</Button>
+         <Card className="bg-slate-900 p-10 rounded-[48px] shadow-2xl relative overflow-hidden group border-none">
+            <div className="absolute bottom-0 right-0 p-10 opacity-10 blur-xl group-hover:blur-none transition-all duration-1000">
+               <Trophy size={160} className="text-indigo-400" />
+            </div>
+            <div className="relative z-10 space-y-8">
+               <div className="inline-flex items-center gap-3 text-indigo-400 underline underline-offset-8 decoration-2">
+                  <Activity size={18} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">Tactical Directive</span>
+               </div>
+               <div className="space-y-4">
+                  <h4 className="text-2xl font-black text-white leading-tight tracking-tight uppercase italic">Master the "Shadow Training" Protocol.</h4>
+                  <p className="text-xs font-bold text-white/40 leading-relaxed uppercase tracking-wider italic">Mimic your core vertical movements without assets to optimize muscle memory and synaptic accuracy.</p>
+               </div>
+               <Button variant="outline" className="border-white/10 text-white font-black uppercase text-[10px] tracking-widest h-14 px-8 rounded-2xl hover:bg-white/5 transition-all">Read Documentation</Button>
             </div>
          </Card>
       </div>
@@ -520,64 +597,68 @@ function PublicDashboard({ players, matches }: { players: Player[], matches: Mat
   const liveMatches = matches.filter(m => m.status === 'live');
   
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
-      <section className="relative h-[400px] rounded-[40px] overflow-hidden flex items-center justify-center text-center p-8">
-         <div className="absolute inset-0 bg-primary" />
+    <div className="space-y-16 animate-in fade-in duration-700">
+      <section className="relative h-[500px] rounded-[64px] overflow-hidden flex items-center justify-center text-center p-12 shadow-2xl">
+         <div className="absolute inset-0 bg-slate-900" />
          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-         <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-transparent" />
+         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
          
-         <div className="relative z-10 max-w-3xl space-y-6">
-            <Badge className="bg-accent text-primary font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full text-[10px]">Academy Portal</Badge>
-            <h1 className="text-5xl md:text-7xl font-black text-secondary tracking-tighter uppercase italic leading-none">
-              Elite <span className="text-accent">Academy</span> Performance
+         <div className="relative z-10 max-w-4xl space-y-10">
+            <div className="flex justify-center">
+              <Badge className="bg-indigo-500 text-white font-black uppercase tracking-[0.4em] px-6 py-2 rounded-full text-[10px] shadow-2xl shadow-indigo-500/40 border-none">Unified Academy Portal</Badge>
+            </div>
+            <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter uppercase italic leading-[0.85]">
+              Elite <span className="text-indigo-500">Academy</span> <br/>Tactical Feed
             </h1>
-            <p className="text-secondary/70 text-lg font-medium max-w-xl mx-auto">
-              Track live matches, athlete statistics, and academy updates in real-time. Join the future of sports excellence.
+            <p className="text-slate-400 text-lg font-bold uppercase tracking-widest max-w-2xl mx-auto italic opacity-80 leading-relaxed">
+              Real-time telemetry, athlete benchmarks, and strategic updates. <br/>Witness the future of regional sports excellence.
             </p>
          </div>
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-black text-primary uppercase tracking-widest flex items-center gap-3">
-              <Activity className="text-accent" /> Live Matches
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="lg:col-span-2 space-y-12">
+          <div className="flex items-center justify-between px-2">
+            <h2 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic flex items-center gap-4">
+              <Activity className="text-indigo-500" /> Live Deployment Feed
             </h2>
             <Link to="/schedule">
-              <Button variant="link" className="text-xs font-black uppercase tracking-widest text-primary p-0">Full Schedule <ArrowRight size={14} className="ml-1" /></Button>
+              <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-500 p-0 hover:bg-transparent">
+                 Full Timeline Archive <ArrowRight size={14} className="ml-2" />
+              </Button>
             </Link>
           </div>
 
           {liveMatches.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-8">
               {liveMatches.map(match => (
                 <Link key={match.id} to={`/matches/${match.id}`} className="block">
-                  <Card className="shadow-2xl border-border-custom bg-white overflow-hidden group hover:border-accent transition-all cursor-pointer">
-                    <div className="bg-red-600 p-2 text-center">
-                      <span className="text-[10px] font-black text-white uppercase tracking-[0.3em] flex items-center justify-center gap-2">
-                         <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> Live Now
+                  <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 bg-white overflow-hidden group hover:ring-2 hover:ring-indigo-500/20 transition-all duration-700">
+                    <div className="bg-red-600 p-3 text-center">
+                      <span className="text-[10px] font-black text-white uppercase tracking-[0.4em] flex items-center justify-center gap-3">
+                         <div className="w-2 h-2 rounded-full bg-white animate-pulse" /> Live Telemetry Linked
                       </span>
                     </div>
-                    <CardContent className="p-8">
-                      <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                    <CardContent className="p-12">
+                      <div className="flex flex-col md:flex-row items-center justify-between gap-12">
                         <div className="text-center md:text-left flex-1">
-                          <p className="text-[10px] font-black text-text-light/40 uppercase mb-2">Category: {match.sport}</p>
-                          <h3 className="text-2xl font-black text-primary underline decoration-accent decoration-4 underline-offset-8">{match.title}</h3>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 italic">{match.sport} Index / Sector A</p>
+                          <h3 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic underline decoration-indigo-500/30 decoration-8 underline-offset-12 transition-all group-hover:decoration-indigo-500">{match.title}</h3>
                         </div>
                         
-                        <div className="flex items-center gap-8 text-center px-8 py-4 bg-secondary/10 rounded-3xl border border-primary/5">
+                        <div className="flex items-center gap-12 text-center px-10 py-6 bg-slate-50/50 rounded-[40px] border border-slate-100 shadow-inner group-hover:bg-slate-50 transition-colors">
                           <div>
-                            <p className="text-4xl font-black text-primary">
+                            <p className="text-6xl font-black text-slate-900 italic tracking-tighter">
                               {match.sport === 'football' ? (match.score as any).team1.goals : (match.score as any).team1.runs}
                             </p>
-                            <p className="text-[9px] font-black text-text-light uppercase tracking-widest opacity-40">Home</p>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">Home Unit</p>
                           </div>
-                          <div className="text-xl font-black text-text-light/20 italic tracking-tighter">VS</div>
+                          <div className="text-3xl font-black text-slate-200 italic tracking-widest">-</div>
                           <div>
-                            <p className="text-4xl font-black text-primary">
+                            <p className="text-6xl font-black text-slate-900 italic tracking-tighter">
                               {match.sport === 'football' ? (match.score as any).team2.goals : (match.score as any).team2.runs}
                             </p>
-                            <p className="text-[9px] font-black text-text-light uppercase tracking-widest opacity-40">Away</p>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">Away Unit</p>
                           </div>
                         </div>
                       </div>
@@ -587,42 +668,44 @@ function PublicDashboard({ players, matches }: { players: Player[], matches: Mat
               ))}
             </div>
           ) : (
-            <Card className="shadow-lg border-dashed border-2 border-muted bg-white/50 p-12 text-center rounded-[30px]">
-               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Activity size={24} className="text-text-light/40" />
+            <div className="py-32 text-center rounded-[64px] border-4 border-dashed border-slate-100 flex flex-col items-center justify-center gap-8 bg-slate-50/30">
+               <div className="w-24 h-24 bg-white rounded-[40px] flex items-center justify-center text-slate-100 shadow-xl border border-slate-50">
+                  <Activity size={48} />
                </div>
-               <p className="text-sm font-black text-text-light/40 uppercase tracking-widest">No Matches Underway</p>
-               <p className="text-xs font-bold text-text-light/30 mt-1 italic">Check the upcoming schedule for next kickoff</p>
-            </Card>
+               <div className="space-y-2">
+                 <p className="text-[12px] font-black text-slate-300 uppercase tracking-[0.5em] italic leading-relaxed">No Deployments Underway</p>
+                 <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest italic leading-relaxed">Scan the timeline for next scheduled mission</p>
+               </div>
+            </div>
           )}
 
-          <div className="pt-8">
-            <h2 className="text-xl font-black text-primary uppercase tracking-widest mb-6 flex items-center gap-3">
-              <Trophy className="text-accent" /> Academy Leaders
+          <div className="pt-12">
+            <h2 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic mb-8 flex items-center gap-4 px-2">
+              <Trophy className="text-indigo-500" /> Academy Benchmark Leaders
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {players.slice(0, 3).map((player, i) => (
-                <Card key={player.id} className="border-border-custom shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-all">
-                  <div className="absolute top-0 right-0 p-4 opacity-5">
-                    <span className="text-6xl font-black text-primary">0{i+1}</span>
+                <Card key={player.id} className="elite-card border-none shadow-2xl relative overflow-hidden group hover:scale-[1.05] transition-all duration-700">
+                  <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-125 transition-transform duration-1000">
+                    <span className="text-8xl font-black text-slate-900 italic">0{i+1}</span>
                   </div>
-                  <CardContent className="p-6 space-y-4">
-                    <div className="w-12 h-12 bg-primary flex items-center justify-center text-secondary font-black text-lg skew-x-[-12deg]">
+                  <CardContent className="p-8 space-y-6">
+                    <div className="w-16 h-16 bg-slate-900 text-white flex items-center justify-center font-black text-2xl rounded-2xl skew-x-[-8deg] shadow-lg group-hover:rotate-6 transition-transform">
                       {player.name[0]}
                     </div>
                     <div>
-                      <p className="text-lg font-black text-primary tracking-tight">{player.name}</p>
-                      <p className="text-[10px] font-black text-text-light uppercase tracking-widest italic">{player.primarySport}</p>
+                      <p className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">{player.name}</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">{player.primarySport} DEP.</p>
                     </div>
-                    <div className="pt-4 border-t border-muted/50 flex justify-between items-end">
+                    <div className="pt-6 border-t border-slate-50 flex justify-between items-end">
                       <div>
-                        <p className="text-2xl font-black text-primary">
+                        <p className="text-4xl font-black text-slate-900 italic tracking-tighter leading-none">
                           {player.stats.football.goals || player.stats.cricket.runs || 0}
                         </p>
-                        <p className="text-[9px] font-bold text-text-light uppercase tracking-widest opacity-40">Performance</p>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2 italic">Performance Grade</p>
                       </div>
                       <Link to={`/players/${player.id}`}>
-                        <Button size="icon" variant="ghost" className="rounded-full hover:bg-accent hover:text-primary"><ExternalLink size={16} /></Button>
+                        <Button size="icon" variant="ghost" className="rounded-2xl h-12 w-12 hover:bg-indigo-50 hover:text-indigo-500 shadow-sm border border-slate-100 transition-all"><ExternalLink size={20} /></Button>
                       </Link>
                     </div>
                   </CardContent>
@@ -632,27 +715,27 @@ function PublicDashboard({ players, matches }: { players: Player[], matches: Mat
           </div>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-12">
           <div>
-            <h2 className="text-xl font-black text-primary uppercase tracking-widest mb-6 flex items-center gap-3">
-              <Plus className="text-accent" /> Academy News
+            <h2 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic mb-8 flex items-center gap-4 px-2">
+              <Plus className="text-indigo-500" /> Academy Log
             </h2>
-            <Card className="border-border-custom shadow-card overflow-hidden">
+            <Card className="elite-card border-none shadow-2xl overflow-hidden bg-white">
               <CardContent className="p-0">
-                <div className="divide-y divide-muted">
+                <div className="divide-y divide-slate-50">
                   {[
-                    { title: "Training Logs Updated", date: "May 12", excerpt: "Check your personal development scores in player portal." },
-                    { title: "Inter-Academy Cup", date: "May 10", excerpt: "Rimon Sports confirms participation in the Summer Series." },
-                    { title: "Kit Distribution", date: "May 08", excerpt: "New training kits available in the admin office." },
-                    { title: "Academy Open Day", date: "May 05", excerpt: "Public scouting session scheduled for next Sunday." }
+                    { title: "Training Logs Updated", date: "12 May", excerpt: "Personal development scores now available in player portal." },
+                    { title: "Inter-Academy Cup", date: "10 May", excerpt: "Rimon Sports confirms participation in the Summer Series." },
+                    { title: "Kit Distribution Active", date: "08 May", excerpt: "New training assets ready for pick-up at admin sector." },
+                    { title: "Academy Open Day", date: "05 May", excerpt: "Public talent scouting session scheduled for next Sunday." }
                   ].map((news, i) => (
-                    <div key={i} className="p-6 hover:bg-muted/5 transition-colors cursor-pointer group">
-                      <div className="flex justify-between items-start mb-2">
-                        <Badge variant="outline" className="text-[8px] font-black uppercase border-primary/20">{news.date}</Badge>
-                        <ArrowRight size={14} className="text-accent opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                    <div key={i} className="p-8 hover:bg-slate-50 transition-all cursor-pointer group">
+                      <div className="flex justify-between items-center mb-3">
+                        <Badge className="bg-indigo-50 text-indigo-500 font-black uppercase text-[8px] tracking-[0.2em] px-3 py-1 rounded-full border-none">{news.date}</Badge>
+                        <ArrowRight size={16} className="text-indigo-500 opacity-0 group-hover:opacity-100 transition-all -translate-x-4 group-hover:translate-x-0" />
                       </div>
-                      <h4 className="text-sm font-black text-primary uppercase mb-1">{news.title}</h4>
-                      <p className="text-[11px] font-medium text-text-light/60 line-clamp-2 italic leading-relaxed">{news.excerpt}</p>
+                      <h4 className="text-sm font-black text-slate-900 uppercase italic tracking-tight mb-2 group-hover:text-indigo-600 transition-colors">{news.title}</h4>
+                      <p className="text-[11px] font-bold text-slate-400 leading-relaxed uppercase tracking-wide italic opacity-80">{news.excerpt}</p>
                     </div>
                   ))}
                 </div>
@@ -660,19 +743,19 @@ function PublicDashboard({ players, matches }: { players: Player[], matches: Mat
             </Card>
           </div>
 
-          <Card className="bg-primary p-8 rounded-[30px] shadow-2xl relative overflow-hidden group">
-            <div className="absolute bottom-0 right-0 p-8 opacity-10 blur-xl group-hover:blur-none transition-all duration-700">
-               <Trophy size={160} className="text-accent" />
+          <Card className="bg-slate-900 p-10 rounded-[56px] shadow-2xl relative overflow-hidden group border-none">
+            <div className="absolute bottom-0 right-0 p-10 opacity-10 blur-xl group-hover:blur-none transition-all duration-1000 group-hover:rotate-12">
+               <Trophy size={200} className="text-indigo-400" />
             </div>
-            <div className="relative z-10 space-y-6">
-               <h3 className="text-2xl font-black text-secondary tracking-tighter uppercase leading-none italic">
-                 Join the <br/><span className="text-accent">Professional</span> Pathway
+            <div className="relative z-10 space-y-8">
+               <h3 className="text-3xl font-black text-white tracking-tighter uppercase leading-[0.9] italic">
+                 Join the <br/><span className="text-indigo-500">Professional</span> Pathway
                </h3>
-               <p className="text-secondary/60 text-xs font-medium italic">
-                 Enroll in the country's most advanced athletic development program.
+               <p className="text-white/40 text-xs font-bold uppercase tracking-widest italic leading-relaxed">
+                 Enroll in the country's most advanced athletic development ecosystem and secure your future.
                </p>
-               <Button className="w-full bg-accent text-primary font-black uppercase text-[10px] tracking-widest h-12 rounded-xl group-hover:scale-105 transition-transform">
-                 Apply for Membership
+               <Button className="w-full bg-indigo-500 text-white font-black uppercase text-[11px] tracking-[0.3em] h-16 rounded-[28px] shadow-xl shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-95">
+                 Initialize Application
                </Button>
             </div>
           </Card>
@@ -685,6 +768,7 @@ function PublicDashboard({ players, matches }: { players: Player[], matches: Mat
 export default function Dashboard() {
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [matches, setMatches] = React.useState<Match[]>([]);
+  const [teams, setTeams] = React.useState<Team[]>([]);
   const [currentPlayer, setCurrentPlayer] = React.useState<Player | null>(null);
   const [loading, setLoading] = React.useState(true);
   const { user, profile } = useAuth();
@@ -692,6 +776,7 @@ export default function Dashboard() {
   React.useEffect(() => {
     const unsubPlayers = dataService.getPlayers(setPlayers);
     const unsubMatches = dataService.getMatches(setMatches);
+    const unsubTeams = dataService.getTeams(setTeams);
     
     // If user is a player, fetch their specific player profile
     let unsubProfile = () => {};
@@ -707,6 +792,7 @@ export default function Dashboard() {
     return () => {
       unsubPlayers();
       unsubMatches();
+      unsubTeams();
       unsubProfile();
     };
   }, [profile]);
@@ -727,5 +813,5 @@ export default function Dashboard() {
     return <PlayerDashboard player={currentPlayer} matches={matches} />;
   }
 
-  return <ManagementDashboard players={players} matches={matches} />;
+  return <ManagementDashboard players={players} matches={matches} teams={teams} />;
 }

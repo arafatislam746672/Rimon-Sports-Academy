@@ -57,10 +57,13 @@
         "uid": { "type": "string" },
         "email": { "type": "string" },
         "role": { "type": "string", "enum": ["player", "management"] },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
         "playerId": { "type": "string" },
-        "name": { "type": "string" }
+        "name": { "type": "string" },
+        "isSuperAdmin": { "type": "boolean" },
+        "permissions": { "type": "object" }
       },
-      "required": ["uid", "email", "role", "name"]
+      "required": ["uid", "email", "role", "name", "status"]
     },
     "MatchSubmission": {
       "title": "Match Submission",
@@ -91,6 +94,46 @@
         "tournamentIds": { "type": "array" }
       },
       "required": ["name", "sport", "playerIds", "createdAt"]
+    },
+    "TopEleven": {
+      "title": "Top Eleven",
+      "description": "Elite player list for academy",
+      "type": "object",
+      "properties": {
+        "sport": { "type": "string" },
+        "playerIds": { "type": "array" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["sport", "playerIds", "updatedAt"]
+    },
+    "Commentary": {
+      "title": "Commentary",
+      "description": "Live match commentary entry",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "type": { "type": "string", "enum": ["system", "ai", "event"] },
+        "gameTime": { "type": "string" }
+      },
+      "required": ["text", "timestamp", "type"]
+    },
+    "Standing": {
+      "title": "Standing",
+      "description": "Team standings in a tournament",
+      "type": "object",
+      "properties": {
+        "teamId": { "type": "string" },
+        "tournamentId": { "type": "string" },
+        "played": { "type": "integer" },
+        "won": { "type": "integer" },
+        "lost": { "type": "integer" },
+        "draw": { "type": "integer" },
+        "points": { "type": "integer" },
+        "netRunRate": { "type": "number" },
+        "goalDifference": { "type": "integer" }
+      },
+      "required": ["teamId", "tournamentId", "played", "won", "lost", "points"]
     }
   },
   "firestore": {
@@ -102,9 +145,17 @@
       "schema": "Match",
       "description": "Collection of matches"
     },
+    "/matches/{matchId}/commentary/{commentaryId}": {
+      "schema": "Commentary",
+      "description": "Sub-collection for match commentary"
+    },
     "/tournaments/{tournamentId}": {
       "schema": "Tournament",
       "description": "Collection of tournaments"
+    },
+    "/standings/{standingId}": {
+      "schema": "Standing",
+      "description": "Tournament standings"
     },
     "/attendance/{attendanceId}": {
       "schema": "Attendance",
@@ -121,6 +172,10 @@
     "/teams/{teamId}": {
       "schema": "Team",
       "description": "Collection of teams"
+    },
+    "/academy/{docId}": {
+      "schema": "TopEleven",
+      "description": "Academy global lists"
     }
   }
 }

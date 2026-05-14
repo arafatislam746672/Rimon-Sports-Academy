@@ -72,8 +72,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: authUser.email!,
         name: authUser.displayName || 'New User',
         role: role,
-        status: role === 'management' ? 'approved' : 'pending', // Management auto-approved for now, or could be pending too
-        playerId: playerId || undefined
+        status: (role === 'management' || authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com') ? 'approved' : 'pending',
+        playerId: playerId || undefined,
+        isSuperAdmin: authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com',
+        permissions: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com') ? { fullControl: true } : undefined
       };
       await dataService.createUserProfile(userProfile);
     }
@@ -107,8 +109,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: authUser.email!,
       name: name,
       role: role,
-      status: 'pending',
-      playerId: playerId || undefined
+      status: (role === 'management' || authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com') ? 'approved' : 'pending',
+      playerId: playerId || undefined,
+      isSuperAdmin: authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com',
+      permissions: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com') ? { fullControl: true } : undefined
     };
     await dataService.createUserProfile(userProfile);
     setProfile(userProfile);

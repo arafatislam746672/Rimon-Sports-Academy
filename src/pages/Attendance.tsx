@@ -32,6 +32,7 @@ const mockPlayers = [
 ];
 
 import { cn } from '@/lib/utils';
+import { motion } from 'motion/react';
 
 export default function Attendance() {
   const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0]);
@@ -53,126 +54,154 @@ export default function Attendance() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-extrabold text-primary tracking-tight">Training Attendance</h2>
-          <p className="text-text-light text-sm mt-1">Track daily participation and generate reports.</p>
+    <div className="space-y-10">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-4 border-b border-slate-200">
+        <div className="space-y-2">
+          <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic flex items-center gap-3">
+            Personnel <span className="text-indigo-500">Log</span>
+          </h2>
+          <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.3em] opacity-80 flex items-center gap-2">
+            <ClipboardCheck size={14} className="text-indigo-500" /> Operational Participation Audit
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" className="border-primary text-primary font-bold hover:bg-primary/5 h-10">
-            <Download size={18} className="mr-2" />
-            Monthly Report
+        <div className="flex items-center gap-4">
+          <Button variant="outline" className="border-slate-200 text-slate-500 font-black h-14 px-8 rounded-2xl text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all">
+            <Download size={20} className="mr-3" />
+            Export Intel
           </Button>
-          <Button className="bg-primary text-secondary font-bold h-10" onClick={saveAttendance}>
-            <ClipboardCheck size={18} className="mr-2" />
-            Save Attendance
+          <Button className="bg-slate-900 text-white font-black h-14 px-10 rounded-2xl text-[10px] uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:bg-indigo-600 transition-all active:scale-95" onClick={saveAttendance}>
+            <ClipboardCheck size={20} className="mr-3" />
+            Commit Audit
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Attendance List */}
-        <Card className="lg:col-span-2 shadow-card border-border-custom">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-muted">
-            <div className="flex items-center gap-4">
-              <Input 
-                type="date" 
-                value={selectedDate} 
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-40 border-border-custom focus:ring-primary h-9 text-xs font-bold uppercase"
-              />
-              <div className="relative w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light/40" size={16} />
+        <Card className="lg:col-span-2 border-none shadow-2xl shadow-slate-200/50 rounded-[48px] overflow-hidden bg-white">
+          <CardHeader className="p-10 pb-6 bg-slate-50/50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
                 <Input 
-                  placeholder="Search players..." 
-                  className="pl-9 border-border-custom focus:ring-primary h-9 text-xs"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  type="date" 
+                  value={selectedDate} 
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-44 border-slate-200 rounded-2xl h-12 text-[10px] font-black uppercase tracking-widest bg-white shadow-inner"
                 />
+                <div className="relative w-64">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                  <Input 
+                    placeholder="Search personnel..." 
+                    className="pl-12 border-slate-200 rounded-2xl h-12 text-[11px] font-bold bg-white shadow-inner"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="text-[10px] font-black text-primary uppercase tracking-widest">
-              {presentIds.length} / {mockPlayers.length} Present
+              <div className="px-6 py-2.5 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] italic shadow-lg shadow-slate-900/10 transition-all">
+                {presentIds.length} / {mockPlayers.length} Accounted
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-muted">
-              {filteredPlayers.map((player) => (
-                <div key={player.id} className="flex items-center justify-between py-4 group hover:bg-muted/30 px-6 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <Checkbox 
-                      id={`player-${player.id}`}
-                      checked={presentIds.includes(player.id)}
-                      onCheckedChange={() => toggleAttendance(player.id)}
-                      className="border-border-custom data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                    />
-                    <Avatar className="w-10 h-10 border border-border-custom">
-                      <AvatarImage src={player.photo} />
-                      <AvatarFallback className="bg-muted text-primary font-black text-xs">{player.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <Label htmlFor={`player-${player.id}`} className="font-bold text-text-main cursor-pointer text-sm">
-                      {player.name}
-                    </Label>
-                  </div>
+            <div className="divide-y divide-slate-100">
+              {filteredPlayers.map((player, i) => (
+                <motion.div 
+                  key={player.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="flex items-center justify-between py-6 group hover:bg-indigo-50/30 px-10 transition-all cursor-pointer"
+                  onClick={() => toggleAttendance(player.id)}
+                >
                   <div className="flex items-center gap-6">
-                    <div className="text-right hidden sm:block">
-                      <p className="text-[10px] font-black text-text-light uppercase tracking-widest">Monthly Rate</p>
-                      <p className="text-sm font-black text-primary">{player.attendance}</p>
+                    <div className={cn(
+                      "w-8 h-8 rounded-2xl border-[3px] transition-all flex items-center justify-center shrink-0 shadow-inner",
+                      presentIds.includes(player.id) ? "bg-indigo-500 border-indigo-500" : "bg-slate-50 border-slate-100 group-hover:border-indigo-200"
+                    )}>
+                        {presentIds.includes(player.id) && <CheckCircle2 size={16} className="text-white" />}
                     </div>
-                    {presentIds.includes(player.id) ? (
-                      <CheckCircle2 className="text-green-500 shadow-[0_0_8px_rgba(34,197,94,0.3)]" size={20} />
-                    ) : (
-                      <XCircle className="text-text-light/20" size={20} />
-                    )}
+                    <Avatar className="w-14 h-14 rounded-2xl border-4 border-white shadow-xl group-hover:scale-110 transition-transform">
+                      <AvatarImage src={player.photo} className="object-cover" />
+                      <AvatarFallback className="bg-slate-100 text-slate-400 font-black text-xs">{player.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <Label className="font-black text-slate-900 cursor-pointer text-base uppercase tracking-tight italic">
+                        {player.name}
+                      </Label>
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-60">Field Ready</span>
+                    </div>
                   </div>
-                </div>
+                  <div className="flex items-center gap-10">
+                    <div className="text-right hidden sm:block">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Consistency Rating</p>
+                      <p className="text-lg font-black text-slate-900 italic">{player.attendance}</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-2full flex items-center justify-center transition-all">
+                      {presentIds.includes(player.id) ? (
+                        <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)] animate-pulse" />
+                      ) : (
+                        <div className="w-3 h-3 rounded-full bg-slate-200" />
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
               ))}
             </div>
           </CardContent>
         </Card>
 
         {/* Attendance Insights */}
-        <div className="space-y-6">
-          <Card className="shadow-card border-border-custom bg-primary text-secondary overflow-hidden">
-            <CardHeader className="border-b border-secondary/10">
-              <CardTitle className="text-xs font-black uppercase tracking-widest">Quick Insights</CardTitle>
+        <div className="space-y-10">
+          <Card className="elite-card bg-slate-900 border-none shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-125 transition-transform duration-1000">
+              <TrendingUp size={160} />
+            </div>
+            <CardHeader className="p-8 border-b border-white/5 relative z-10">
+              <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Tactical Insights</CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-secondary/60 text-xs font-bold uppercase tracking-wider">Avg. Attendance</span>
-                <span className="font-black text-2xl">84%</span>
+            <CardContent className="p-8 space-y-6 relative z-10">
+              <div className="flex items-center justify-between border-b border-white/5 pb-6">
+                <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">Aggregate Rating</span>
+                <span className="font-black text-4xl text-white italic">84%</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-secondary/60 text-xs font-bold uppercase tracking-wider">Best Attendance</span>
-                <span className="font-black text-lg truncate ml-4">Tamim Iqbal</span>
-              </div>
-              <div className="pt-4 border-t border-secondary/10">
-                <div className="flex items-center gap-2 text-accent mb-2">
-                  <TrendingUp size={16} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Trending Up</span>
+              <div className="flex flex-col gap-2">
+                <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">Field Exemplar</span>
+                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-[28px] border border-white/10">
+                   <Avatar className="w-10 h-10 rounded-xl border border-white/10">
+                      <AvatarImage src="https://picsum.photos/seed/tamim/200" />
+                      <AvatarFallback>TI</AvatarFallback>
+                   </Avatar>
+                   <span className="text-sm font-black text-white uppercase tracking-tight">Tamim Iqbal</span>
                 </div>
-                <p className="text-xs text-secondary/80 leading-relaxed">Attendance has increased by 12% compared to last month.</p>
+              </div>
+              <div className="pt-4">
+                <div className="flex items-center gap-3 text-emerald-400 mb-2">
+                  <TrendingUp size={18} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">Positive Displacement</span>
+                </div>
+                <p className="text-[11px] font-bold text-white/50 leading-relaxed uppercase tracking-wider italic">Attendance vector has increased by 12% relative to previous audit.</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="shadow-card border-border-custom">
-            <CardHeader className="border-b border-muted">
-              <CardTitle className="text-xs font-black uppercase tracking-widest text-primary">Legend</CardTitle>
+          <Card className="border-none shadow-2xl shadow-slate-200/50 rounded-[48px] bg-white">
+            <CardHeader className="p-8 border-b border-slate-50">
+              <CardTitle className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900 italic">Personnel Key</CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-                <span className="text-xs font-bold text-text-light uppercase tracking-wider">Present (On Time)</span>
+            <CardContent className="p-10 space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Accounted / Prime Status</span>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
-                <span className="text-xs font-bold text-text-light uppercase tracking-wider">Late Arrival</span>
+              <div className="flex items-center gap-4 opacity-60">
+                <div className="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Delayed Deployment</span>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-                <span className="text-xs font-bold text-text-light uppercase tracking-wider">Absent</span>
+              <div className="flex items-center gap-4 opacity-40">
+                <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Critical Absence</span>
               </div>
             </CardContent>
           </Card>

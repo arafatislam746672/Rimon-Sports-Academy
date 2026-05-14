@@ -5,14 +5,18 @@ import {
   getDoc, 
   setDoc, 
   updateDoc, 
+  deleteDoc,
   query, 
   where, 
   onSnapshot,
-  getDocFromServer
+  getDocFromServer,
+  addDoc,
+  orderBy,
+  limit
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
-import { Player, Match, Tournament, Attendance, Sport, UserProfile, MatchSubmission, PlayerStatus, Team } from '../types';
+import { Player, Match, Tournament, Attendance, Sport, UserProfile, MatchSubmission, PlayerStatus, Team, TopEleven, CricketScore, FootballScore, BadmintonScore } from '../types';
 import { handleFirestoreError, OperationType } from '../lib/firestore-error';
 
 export const dataService = {
@@ -301,6 +305,123 @@ export const dataService = {
     }
   },
 
+  completeMatch: async (matchId: string, participantScores: { playerId: string, stats: any }[]) => {
+    const path = `matches/${matchId}`;
+    try {
+      // 1. Get current match
+      const mRef = doc(db, 'matches', matchId);
+      const mSnap = await getDoc(mRef);
+      if (!mSnap.exists()) throw new Error("Match not found");
+      const match = mSnap.data() as Match;
+
+      // 2. Update stats for all involved players
+      for (const pScore of participantScores) {
+        const playerRef = doc(db, 'players', pScore.playerId);
+        const playerSnap = await getDoc(playerRef);
+        
+        if (playerSnap.exists()) {
+          const playerData = playerSnap.data() as Player;
+          const newStats = { ...playerData.stats };
+
+          if (match.sport === 'cricket') {
+            newStats.cricket.runs += pScore.stats.runs || 0;
+            newStats.cricket.wickets += pScore.stats.wickets || 0;
+            newStats.cricket.matches += 1;
+            newStats.cricket.average = newStats.cricket.runs / (newStats.cricket.matches || 1);
+          } else if (match.sport === 'football') {
+            newStats.football.goals += pScore.stats.goals || 0;
+            newStats.football.assists += pScore.stats.assists || 0;
+            newStats.football.matches += 1;
+            newStats.football.yellowCards += pScore.stats.yellowCards || 0;
+            newStats.football.redCards += pScore.stats.redCards || 0;
+          } else if (match.sport === 'badminton') {
+            newStats.badminton.matches += 1;
+            if (pScore.stats.isWinner) newStats.badminton.wins += 1;
+            newStats.badminton.winRate = (newStats.badminton.wins / (newStats.badminton.matches || 1)) * 100;
+          }
+
+          await updateDoc(playerRef, { stats: newStats });
+        }
+      }
+
+      // 3. Mark match as completed
+      await updateDoc(mRef, { status: 'completed' });
+
+      // 4. Update Tournament Standings
+      if (match.tournamentId) {
+        await dataService.updateTournamentStandings(match);
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+  },
+
+  updateTournamentStandings: async (match: Match) => {
+    if (!match.tournamentId || match.sport === 'badminton') return;
+    try {
+      const score = match.score as (CricketScore | FootballScore);
+      const teamsToUpdate = [
+        { id: match.team1Id, score: score.team1 },
+        { id: match.team2Id, score: score.team2 }
+      ];
+
+      for (const t of teamsToUpdate) {
+        if (!t.id) continue;
+        const standingId = `${match.tournamentId}_${t.id}`;
+        const standingRef = doc(db, 'standings', standingId);
+        const standingSnap = await getDoc(standingRef);
+        
+        const isTeam1 = t.id === match.team1Id;
+        
+        // Handle score comparison based on sport
+        let myScoreValue = 0;
+        let oppScoreValue = 0;
+
+        if (match.sport === 'cricket') {
+          const s = score as CricketScore;
+          myScoreValue = isTeam1 ? s.team1.runs : s.team2.runs;
+          oppScoreValue = isTeam1 ? s.team2.runs : s.team1.runs;
+        } else if (match.sport === 'football') {
+          const s = score as FootballScore;
+          myScoreValue = isTeam1 ? s.team1.goals : s.team2.goals;
+          oppScoreValue = isTeam1 ? s.team2.goals : s.team1.goals;
+        }
+
+        let result: 'win' | 'loss' | 'draw' = 'draw';
+        if (myScoreValue > oppScoreValue) result = 'win';
+        else if (myScoreValue < oppScoreValue) result = 'loss';
+
+        if (standingSnap.exists()) {
+          const s = standingSnap.data();
+          await updateDoc(standingRef, {
+            played: s.played + 1,
+            won: s.won + (result === 'win' ? 1 : 0),
+            lost: s.lost + (result === 'loss' ? 1 : 0),
+            draw: (s.draw || 0) + (result === 'draw' ? 1 : 0),
+            points: s.points + (result === 'win' ? 3 : result === 'draw' ? 1 : 0),
+            goalDifference: (s.goalDifference || 0) + (myScoreValue - oppScoreValue),
+            updatedAt: new Date().toISOString()
+          });
+        } else {
+          await setDoc(standingRef, {
+            tournamentId: match.tournamentId,
+            teamId: t.id,
+            played: 1,
+            won: result === 'win' ? 1 : 0,
+            lost: result === 'loss' ? 1 : 0,
+            draw: result === 'draw' ? 1 : 0,
+            points: result === 'win' ? 3 : result === 'draw' ? 1 : 0,
+            goalDifference: myScoreValue - oppScoreValue,
+            netRunRate: 0,
+            updatedAt: new Date().toISOString()
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Standings Update Error:", error);
+    }
+  },
+
   rejectSubmission: async (submissionId: string) => {
     try {
       await updateDoc(doc(db, 'submissions', submissionId), { status: 'rejected' });
@@ -336,6 +457,16 @@ export const dataService = {
     }
   },
 
+  getProfiles: (callback: (profiles: UserProfile[]) => void) => {
+    const path = 'profiles';
+    return onSnapshot(collection(db, path), (snapshot) => {
+      const profiles = snapshot.docs.map(doc => ({ ...doc.data() } as UserProfile));
+      callback(profiles);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, path);
+    });
+  },
+
   // Teams
   getTeams: (callback: (teams: Team[]) => void) => {
     const path = 'teams';
@@ -367,6 +498,46 @@ export const dataService = {
     }
   },
 
+  deleteTeam: async (teamId: string) => {
+    const path = `teams/${teamId}`;
+    try {
+      await deleteDoc(doc(db, 'teams', teamId));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
+    }
+  },
+
+  getTeam: (teamId: string, callback: (team: Team | null) => void) => {
+    const path = `teams/${teamId}`;
+    return onSnapshot(doc(db, 'teams', teamId), (snapshot) => {
+      if (snapshot.exists()) {
+        callback({ id: snapshot.id, ...snapshot.data() } as Team);
+      } else {
+        callback(null);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, path);
+    });
+  },
+
+  updateMatchScore: async (matchId: string, score: any) => {
+    const path = `matches/${matchId}`;
+    try {
+      await updateDoc(doc(db, 'matches', matchId), { score });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+  },
+
+  updateMatchStatus: async (matchId: string, status: string) => {
+    const path = `matches/${matchId}`;
+    try {
+      await updateDoc(doc(db, 'matches', matchId), { status });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+  },
+
   // Tournaments
   getTournaments: (callback: (tournaments: Tournament[]) => void) => {
     const path = 'tournaments';
@@ -387,5 +558,75 @@ export const dataService = {
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, path);
     }
+  },
+
+  // Academy / Top 11
+  getTopEleven: (sport: Sport, callback: (topEleven: TopEleven | null) => void) => {
+    const path = `academy/top-eleven-${sport}`;
+    return onSnapshot(doc(db, 'academy', `top-eleven-${sport}`), (snapshot) => {
+      if (snapshot.exists()) {
+        callback({ id: snapshot.id, ...snapshot.data() } as TopEleven);
+      } else {
+        callback(null);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, path);
+    });
+  },
+
+  updateTopEleven: async (sport: Sport, playerIds: string[]) => {
+    const path = `academy/top-eleven-${sport}`;
+    try {
+      const docRef = doc(db, 'academy', `top-eleven-${sport}`);
+      await setDoc(docRef, {
+        sport,
+        playerIds,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    } catch (error) {
+     handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+  },
+
+  // Commentary
+  addCommentary: async (matchId: string, text: string, type: 'system' | 'ai' | 'event', gameTime?: string) => {
+    const path = `matches/${matchId}/commentary`;
+    try {
+      await addDoc(collection(db, 'matches', matchId, 'commentary'), {
+        text,
+        type,
+        gameTime,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, path);
+    }
+  },
+
+  getCommentary: (matchId: string, callback: (commentary: any[]) => void) => {
+    const q = query(
+      collection(db, 'matches', matchId, 'commentary'),
+      orderBy('timestamp', 'desc'),
+      limit(50)
+    );
+    return onSnapshot(q, (snapshot) => {
+      callback(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, `matches/${matchId}/commentary`);
+    });
+  },
+
+  // Standings
+  getStandings: (tournamentId: string, callback: (standings: any[]) => void) => {
+    const q = query(
+      collection(db, 'standings'),
+      where('tournamentId', '==', tournamentId),
+      orderBy('points', 'desc')
+    );
+    return onSnapshot(q, (snapshot) => {
+      callback(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, 'standings');
+    });
   }
 };

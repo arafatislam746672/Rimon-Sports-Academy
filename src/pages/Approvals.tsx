@@ -90,64 +90,77 @@ export default function Approvals() {
 
   if (profile?.role !== 'management') {
     return (
-      <div className="text-center py-20 bg-secondary/30 rounded-3xl border-2 border-dashed border-primary/20">
-        <ShieldCheck size={64} className="mx-auto text-primary/10 mb-6" />
-        <h2 className="text-2xl font-black text-primary uppercase tracking-widest">Access Denied</h2>
-        <p className="text-text-light font-bold mt-2">Only academy management can access the approval queue.</p>
+      <div className="text-center py-32 bg-slate-50 rounded-[48px] border-4 border-dashed border-slate-100 flex flex-col items-center justify-center gap-8">
+        <div className="w-24 h-24 rounded-[32px] bg-slate-900/5 flex items-center justify-center text-slate-200">
+          <ShieldCheck size={48} />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-slate-900 uppercase tracking-widest italic">Unauthorized Sector</h2>
+          <p className="text-slate-400 font-bold text-xs uppercase tracking-widest max-w-xs mx-auto leading-relaxed">Management clearance required to access the approval queue.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <header>
-        <h2 className="text-3xl font-black text-primary tracking-tight">MANAGEMENT CENTER</h2>
-        <p className="text-text-light text-sm font-bold uppercase tracking-widest opacity-60 italic">Academy verification & access control</p>
+    <div className="space-y-10">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-4 border-b border-slate-200">
+        <div className="space-y-1">
+          <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic flex items-center gap-3">
+            Security <span className="text-indigo-500">Clearance</span>
+          </h2>
+          <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.3em] opacity-80 italic">Academy verification & access control</p>
+        </div>
       </header>
 
       <Tabs defaultValue="submissions" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-muted p-1 rounded-xl mb-8">
-          <TabsTrigger value="submissions" className="data-[state=active]:bg-primary data-[state=active]:text-secondary flex items-center gap-2 font-black uppercase text-[10px] tracking-widest py-3">
-             <FileText size={16} /> Match Scores
+        <TabsList className="bg-slate-100 p-1.5 rounded-2xl mb-10 w-fit">
+          <TabsTrigger value="submissions" className="data-[state=active]:bg-slate-900 data-[state=active]:text-white font-black uppercase text-[10px] tracking-widest py-3 px-8 rounded-xl transition-all">
+             Match Scores
           </TabsTrigger>
-          <TabsTrigger value="users" className="data-[state=active]:bg-primary data-[state=active]:text-secondary flex items-center gap-2 font-black uppercase text-[10px] tracking-widest py-3">
-             <UserCheck size={16} /> User Approvals
+          <TabsTrigger value="users" className="data-[state=active]:bg-slate-900 data-[state=active]:text-white font-black uppercase text-[10px] tracking-widest py-3 px-8 rounded-xl transition-all relative">
+             User Profiles
              {pendingProfiles.length > 0 && (
-               <Badge className="bg-accent text-primary p-0 h-4 w-4 flex items-center justify-center rounded-full text-[8px]">
+               <span className="absolute -top-1 -right-1 bg-indigo-500 text-white w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-black border-2 border-white">
                  {pendingProfiles.length}
-               </Badge>
+               </span>
              )}
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="submissions" className="space-y-6">
+        <TabsContent value="submissions" className="space-y-8">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-black text-primary uppercase tracking-widest">Score Verification Hub</h3>
-            <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-border-custom shadow-sm">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] italic">Awaiting Validation</h3>
+            <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-xl border border-slate-200">
               {(['pending', 'approved', 'rejected'] as const).map(f => (
                 <Button
                   key={f}
-                  variant={submissionFilter === f ? 'default' : 'ghost'}
+                  variant="ghost"
                   size="sm"
                   onClick={() => setSubmissionFilter(f)}
-                  className={f === submissionFilter ? 'bg-primary text-secondary font-black text-[10px]' : 'text-text-light font-bold text-[10px]'}
+                  className={cn(
+                    "font-black text-[9px] tracking-widest px-4 rounded-lg transition-all",
+                    submissionFilter === f ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                  )}
                 >
-                  {f.toUpperCase()}
+                  {(f || 'pending').toUpperCase()}
                 </Button>
               ))}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-6">
             <AnimatePresence mode="popLayout">
               {filteredSubmissions.length === 0 ? (
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-center py-20 bg-white rounded-3xl border border-border-custom"
+                  className="py-32 text-center rounded-[48px] border-4 border-dashed border-slate-100 flex flex-col items-center justify-center gap-6"
                 >
-                   <Clock size={32} className="mx-auto text-primary/10 mb-4" />
-                   <p className="text-[10px] font-black text-text-light uppercase tracking-widest italic opacity-40">No {submissionFilter} submissions found</p>
+                   <Clock size={40} className="text-slate-200" />
+                   <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] italic leading-relaxed">
+                     Queue cleared. No {submissionFilter} assets detected.
+                   </p>
                 </motion.div>
               ) : (
                 filteredSubmissions.sort((a,b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()).map((sub) => (
@@ -158,49 +171,56 @@ export default function Approvals() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                   >
-                    <Card className="shadow-card border-border-custom overflow-hidden group">
+                    <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 rounded-[40px] overflow-hidden bg-white">
                       <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 items-center">
-                        <div className="p-6 md:col-span-1 border-r border-muted flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black uppercase">
+                        <div className="p-10 border-r border-slate-50 flex items-center gap-6">
+                          <div className="w-14 h-14 rounded-[20px] bg-indigo-500/10 flex items-center justify-center text-indigo-500 font-black uppercase text-xl">
                             {players[sub.playerId]?.name[0] || '?'}
                           </div>
                           <div>
-                            <p className="text-sm font-black text-primary tracking-tight">{players[sub.playerId]?.name || 'Unknown'}</p>
-                            <p className="text-[9px] font-bold text-text-light uppercase tracking-tighter">{sub.sport}</p>
+                            <p className="text-base font-black text-slate-900 tracking-tight uppercase italic">{players[sub.playerId]?.name || 'Unknown'}</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest opacity-60">{sub.sport}</p>
                           </div>
                         </div>
 
-                        <div className="p-6 md:col-span-2 lg:col-span-3 space-y-1">
-                           <div className="flex items-center gap-2">
-                              <h4 className="text-base font-black text-primary tracking-tight">{sub.matchTitle}</h4>
-                              <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-primary/20 text-primary">
-                                 {new Date(sub.matchDate).toLocaleDateString()}
-                              </Badge>
+                        <div className="p-10 md:col-span-2 lg:col-span-3 space-y-4">
+                           <div className="flex flex-col gap-1">
+                              <h4 className="text-xl font-black text-slate-900 tracking-tight uppercase italic">{sub.matchTitle}</h4>
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{new Date(sub.matchDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                            </div>
-                           <div className="flex flex-wrap gap-4">
+                           <div className="flex flex-wrap gap-10">
                               {sub.sport === 'cricket' && (
-                                 <p className="text-[10px] font-bold text-text-light uppercase">Score: <span className="text-primary font-black">{sub.scoreData.playerRuns}R, {sub.scoreData.playerWickets}W</span></p>
+                                <div className="space-y-1">
+                                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Performance Data</p>
+                                   <p className="text-base font-black text-slate-900 underline decoration-indigo-500/30 decoration-4 underline-offset-4 italic">{sub.scoreData.playerRuns} Runs • {sub.scoreData.playerWickets} Wickets</p>
+                                </div>
                               )}
                               {sub.sport === 'football' && (
-                                 <p className="text-[10px] font-bold text-text-light uppercase">Score: <span className="text-primary font-black">{sub.scoreData.playerGoals}G, {sub.scoreData.playerAssists}A</span></p>
+                                 <div className="space-y-1">
+                                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Performance Data</p>
+                                   <p className="text-base font-black text-slate-900 underline decoration-emerald-500/30 decoration-4 underline-offset-4 italic">{sub.scoreData.playerGoals} Goals • {sub.scoreData.playerAssists} Assists</p>
+                                </div>
                               )}
                            </div>
                         </div>
 
-                        <div className="p-6 md:col-span-1 border-l border-muted text-center">
-                           <a href={sub.proofURL} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-accent uppercase flex items-center justify-center gap-1">
-                              View Proof <ExternalLink size={10} />
+                        <div className="p-10 md:col-span-1 border-l border-slate-50 text-center bg-slate-50/30">
+                           <a href={sub.proofURL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-indigo-600 font-black uppercase text-[10px] tracking-widest hover:underline px-6 py-3 bg-indigo-50 rounded-2xl transition-all">
+                              Digital Proof <ExternalLink size={14} />
                            </a>
                         </div>
 
-                        <div className="p-6 md:col-span-4 lg:col-span-1 border-l border-muted bg-muted/5">
+                        <div className="p-10 md:col-span-4 lg:col-span-1 border-l border-slate-50 bg-slate-50/50">
                            {sub.status === 'pending' ? (
-                             <div className="flex lg:flex-col gap-2">
-                                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white font-black uppercase text-[10px]" onClick={() => handleApproveSubmission(sub)}>Approve</Button>
-                                <Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 font-black uppercase text-[10px]" onClick={() => handleRejectSubmission(submissionFilter === 'pending' ? sub.id : sub.id)}>Reject</Button>
+                             <div className="flex lg:flex-col gap-3">
+                                <Button className="bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase text-[10px] tracking-widest h-12 rounded-2xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all" onClick={() => handleApproveSubmission(sub)}>Verify</Button>
+                                <Button variant="outline" className="border-red-100 text-red-500 hover:bg-red-50 font-black uppercase text-[10px] tracking-widest h-12 rounded-2xl active:scale-95 transition-all" onClick={() => handleRejectSubmission(sub.id)}>Reject</Button>
                              </div>
                            ) : (
-                             <Badge className={cn("w-full justify-center font-black uppercase text-[10px]", sub.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200')}>
+                             <Badge className={cn(
+                               "w-full h-12 rounded-2xl flex items-center justify-center font-black uppercase text-[10px] tracking-widest",
+                               sub.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-none' : 'bg-red-50 text-red-600 border-none'
+                             )} variant="outline">
                                {sub.status}
                              </Badge>
                            )}
@@ -214,40 +234,42 @@ export default function Approvals() {
           </div>
         </TabsContent>
 
-        <TabsContent value="users" className="space-y-6">
-           <div className="flex items-center justify-between">
-              <h3 className="text-xs font-black text-primary uppercase tracking-widest">Identity & Access Control</h3>
-           </div>
+        <TabsContent value="users" className="space-y-8">
+           <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] italic">Pending Enrollment</h3>
 
-           <div className="grid grid-cols-1 gap-4">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <AnimatePresence mode="popLayout">
                  {pendingProfiles.length === 0 ? (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 bg-white rounded-3xl border border-border-custom">
-                       <UserCheck size={32} className="mx-auto text-primary/10 mb-4" />
-                       <p className="text-[10px] font-black text-text-light uppercase tracking-widest italic opacity-40">No pending user approvals</p>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="md:col-span-2 py-32 text-center rounded-[48px] border-4 border-dashed border-slate-100 flex flex-col items-center justify-center gap-6">
+                       <div className="w-20 h-20 rounded-[32px] bg-slate-50 flex items-center justify-center text-slate-200">
+                         <UserCheck size={40} />
+                       </div>
+                       <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em] italic leading-relaxed">Identity queue empty. No pending verifications.</p>
                     </motion.div>
                  ) : (
                     pendingProfiles.map((p) => (
                        <motion.div key={p.uid} layout initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}>
-                          <Card className="shadow-card border-border-custom overflow-hidden">
-                             <div className="flex flex-col md:flex-row items-center p-6 gap-6">
-                                <div className="w-14 h-14 rounded-full bg-accent/20 flex items-center justify-center text-primary font-black uppercase italic text-xl border-2 border-accent/30">
-                                   {p.name[0]}
-                                </div>
-                                <div className="flex-1 space-y-1 text-center md:text-left">
-                                   <div className="flex items-center justify-center md:justify-start gap-4">
-                                      <h4 className="text-lg font-black text-primary tracking-tight uppercase italic">{p.name}</h4>
-                                      <Badge variant="outline" className="bg-primary/5 text-primary text-[8px] font-black uppercase tracking-widest">{p.role}</Badge>
+                          <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 bg-white rounded-[40px] overflow-hidden">
+                             <div className="p-10 space-y-8">
+                                <div className="flex items-center gap-6">
+                                   <div className="w-20 h-20 rounded-[30px] bg-slate-900 flex items-center justify-center text-white text-3xl font-black italic border-8 border-slate-50 shadow-xl">
+                                      {p.name[0]}
                                    </div>
-                                   <p className="text-xs font-bold text-text-light opacity-60">{p.email}</p>
-                                   <p className="text-[10px] font-black text-accent uppercase tracking-widest">ID: {p.uid.substring(0, 8)}...</p>
+                                   <div>
+                                      <h4 className="text-2xl font-black text-slate-900 tracking-tight uppercase italic">{p.name}</h4>
+                                      <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em]">{p.role}</p>
+                                   </div>
                                 </div>
-                                <div className="flex gap-2">
-                                   <Button className="bg-primary text-secondary font-black uppercase text-[10px] tracking-widest h-10 px-6" onClick={() => handleApproveUser(p.uid)}>
-                                      Approve Access
+                                <div className="space-y-1.5 pt-4 border-t border-slate-50">
+                                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest opacity-60">Verified Credentials</p>
+                                   <p className="text-sm font-black text-slate-900 tracking-tight">{p.email}</p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                   <Button className="bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest h-14 rounded-2xl hover:bg-indigo-600 shadow-xl shadow-slate-900/10 active:scale-95 transition-all" onClick={() => handleApproveUser(p.uid)}>
+                                      Grant Access
                                    </Button>
-                                   <Button variant="outline" className="border-red-200 text-red-600 font-black uppercase text-[10px] h-10 px-6" onClick={() => handleRejectUser(p.uid)}>
-                                      Reject
+                                   <Button variant="outline" className="border-red-50 text-red-500 font-black uppercase text-[10px] tracking-widest h-14 rounded-2xl hover:bg-red-50 active:scale-95 transition-all" onClick={() => handleRejectUser(p.uid)}>
+                                      Deny
                                    </Button>
                                 </div>
                              </div>

@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #003366;
-  --color-secondary: #FFFDD0;
-  --color-accent: #FFD700;
-  --color-cream: #FFFDD0;
-  --color-navy: #003366;
-  --color-text-main: #1A1A1A;
-  --color-text-light: #555555;
+  --color-primary: #0F172A; /* Slate 900 */
+  --color-secondary: #F8FAFC; /* Slate 50 */
+  --color-accent: #6366F1; /* Indigo 500 */
+  --color-accent-hover: #4F46E5; /* Indigo 600 */
+  --color-cream: #F8FAFC;
+  --color-navy: #0F172A;
+  --color-text-main: #0F172A;
+  --color-text-light: #64748B; /* Slate 500 */
   --color-card-bg: #FFFFFF;
-  --color-border-custom: #E0DEC5;
+  --color-border-custom: #E2E8F0; /* Slate 200 */
   
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -28,33 +29,33 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-sans: 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   
-  --radius-xl: 12px;
-  --shadow-card: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --radius-xl: 16px;
+  --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 @layer base {
   :root {
-    --background: 60 100% 91%; /* #FFFDD0 */
-    --foreground: 0 0% 10%; /* #1A1A1A */
+    --background: 210 40% 98%; /* Slate 50 */
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-    --primary: 210 100% 20%; /* #003366 */
-    --primary-foreground: 60 100% 91%; /* #FFFDD0 */
-    --secondary: 60 100% 91%; /* #FFFDD0 */
-    --secondary-foreground: 210 100% 20%; /* #003366 */
-    --muted: 60 100% 95%;
-    --muted-foreground: 0 0% 33%; /* #555555 */
-    --accent: 45 100% 50%; /* #FFD700 */
-    --accent-foreground: 210 100% 20%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%; /* Slate 900 */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 238.7 82.5% 66.7%; /* Indigo 500 */
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 58 24% 83%; /* #E0DEC5 */
-    --input: 58 24% 83%;
-    --ring: 210 100% 20%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
     --radius: 12px;
   }
 
@@ -81,9 +82,6 @@
   }
 }
 
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
@@ -96,5 +94,27 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+  
+  .elite-card {
+    @apply bg-white border border-slate-200 rounded-[32px] shadow-sm hover:shadow-2xl hover:border-indigo-500/20 transition-all duration-500;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-slate-900 to-indigo-500;
   }
 }

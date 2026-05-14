@@ -93,6 +93,8 @@ export interface Match {
   title: string;
   date: string;
   participants: string[]; // Player IDs
+  team1Id?: string;
+  team2Id?: string;
   score: MatchScore;
   status: 'upcoming' | 'live' | 'completed';
   tournamentId?: string;
@@ -122,14 +124,47 @@ export interface Team {
   name: string;
   sport: Sport;
   playerIds: string[];
+  captainId?: string;
   coachId?: string;
+  managerId?: string;
+  description?: string;
   createdAt: string;
   logoURL?: string;
   tournamentIds?: string[];
 }
 
+export interface TopEleven {
+  id: string;
+  sport: Sport;
+  playerIds: string[];
+  updatedAt: string;
+}
+
+export interface Standing {
+  id?: string;
+  tournamentId: string;
+  teamId: string;
+  played: number;
+  won: number;
+  lost: number;
+  draw?: number;
+  points: number;
+  netRunRate: number;
+  goalDifference: number;
+  updatedAt: string;
+}
+
 export type UserRole = 'player' | 'management';
 export type UserStatus = 'pending' | 'approved' | 'rejected';
+
+export interface UserPermissions {
+  fullControl?: boolean;
+  managePlayers?: boolean;
+  manageTeams?: boolean;
+  manageMatches?: boolean;
+  manageTournaments?: boolean;
+  manageProfiles?: boolean;
+}
 
 export interface UserProfile {
   uid: string;
@@ -139,6 +174,8 @@ export interface UserProfile {
   playerId?: string; // Links user account to specific player data
   name: string;
   photoURL?: string;
+  isSuperAdmin?: boolean;
+  permissions?: UserPermissions;
   
   // Personal Info
   salutation?: string;
