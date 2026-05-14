@@ -133,10 +133,8 @@ export default function Schedule() {
           </p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-slate-900 text-white h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-slate-900/10 hover:bg-indigo-600 transition-all active:scale-95 italic">
-              <Plus size={20} className="mr-3" /> Initialize Mission
-            </Button>
+          <DialogTrigger render={<Button className="bg-slate-900 text-white h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-slate-900/10 hover:bg-indigo-600 transition-all active:scale-95 italic" />}>
+            <Plus size={20} className="mr-3" /> Initialize Mission
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px] bg-white border-none rounded-[48px] p-0 overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.25)]">
             <div className="bg-slate-900 p-10 text-white relative">

@@ -265,11 +265,9 @@ export default function Players() {
               {isManagement && (
                 <>
                   <Dialog open={isTeamDialogOpen} onOpenChange={setIsTeamDialogOpen}>
-                     <DialogTrigger asChild>
-                       <Button variant="outline" className="border-slate-200 text-slate-900 font-black uppercase tracking-[0.2em] text-[10px] h-20 px-12 rounded-[32px] hover:bg-slate-900 hover:text-white transition-all shadow-xl shadow-slate-200/20 active:scale-95 italic bg-white/50 backdrop-blur-sm group-hover:border-indigo-500/30">
-                         <Flag size={20} className="mr-4" />
-                         Assemble Unit
-                       </Button>
+                     <DialogTrigger render={<Button variant="outline" className="border-slate-200 text-slate-900 font-black uppercase tracking-[0.2em] text-[10px] h-20 px-12 rounded-[32px] hover:bg-slate-900 hover:text-white transition-all shadow-xl shadow-slate-200/20 active:scale-95 italic bg-white/50 backdrop-blur-sm group-hover:border-indigo-500/30" />}>
+                        <Flag size={20} className="mr-4" />
+                        Assemble Unit
                      </DialogTrigger>
                      <DialogContent className="sm:max-w-[650px] bg-white border-none rounded-[64px] p-0 overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.25)]">
                         {/* Team Dialog Content remains same or slightly improved */}
@@ -385,10 +383,8 @@ export default function Players() {
                   </Dialog>
     
                   <Dialog open={isPlayerDialogOpen} onOpenChange={setIsPlayerDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-slate-900 text-white border-none shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 font-black uppercase tracking-widest text-[10px] h-16 px-12 rounded-[28px] active:scale-95 transition-all italic">
-                        <UserPlus size={18} className="mr-3" /> Enroll Asset
-                      </Button>
+                    <DialogTrigger render={<Button className="bg-slate-900 text-white border-none shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 font-black uppercase tracking-widest text-[10px] h-16 px-12 rounded-[28px] active:scale-95 transition-all italic" />}>
+                      <UserPlus size={18} className="mr-3" /> Enroll Asset
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[500px] bg-white border-none rounded-[56px] p-0 overflow-hidden shadow-2xl">
                        <div className="bg-indigo-600 p-12 text-white relative">
@@ -658,10 +654,8 @@ export default function Players() {
                             </div>
                          </div>
                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                               <Button variant="ghost" size="icon" className="text-slate-300 hover:text-slate-900 rounded-[24px] h-14 w-14 hover:bg-white transition-all shadow-sm border border-transparent hover:border-slate-100">
-                                  <MoreVertical size={24} />
-                               </Button>
+                            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="text-slate-300 hover:text-slate-900 rounded-[24px] h-14 w-14 hover:bg-white transition-all shadow-sm border border-transparent hover:border-slate-100" />}>
+                               <MoreVertical size={24} />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="p-3 rounded-[32px] border-none shadow-2xl font-black min-w-[200px]">
                                <DropdownMenuGroup>

@@ -336,10 +336,8 @@ export default function Teams() {
                   </div>
                   {(isManagement || isTeamAuthority(team)) && (
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-2xl h-12 w-12 bg-white shadow-sm border border-slate-100 hover:text-indigo-500">
-                          <MoreVertical size={22} />
-                        </Button>
+                      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="rounded-2xl h-12 w-12 bg-white shadow-sm border border-slate-100 hover:text-indigo-500" />}>
+                        <MoreVertical size={22} />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56 p-3 rounded-3xl border-slate-100 shadow-2xl bg-white/95 backdrop-blur-md">
                         <DropdownMenuItem onClick={() => openEditDialog(team)} className="rounded-2xl cursor-pointer gap-3 font-black text-[10px] uppercase tracking-widest py-4 hover:bg-indigo-50 focus:bg-indigo-50">

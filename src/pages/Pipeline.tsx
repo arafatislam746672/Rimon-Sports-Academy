@@ -577,14 +577,12 @@ function DropdownAction({
 }) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button 
+      <DropdownMenuTrigger render={<Button 
           variant="ghost" 
           size="icon" 
           className="w-12 h-12 p-0 border-none bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center justify-center transition-all shadow-sm focus:ring-0"
-        >
+        />}>
           <MoreVertical size={22} className="text-slate-400" />
-        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="rounded-[32px] p-3 border-none shadow-2xl font-black min-w-[220px] bg-white">
         <DropdownMenuGroup>

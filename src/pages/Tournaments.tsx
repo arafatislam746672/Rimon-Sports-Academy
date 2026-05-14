@@ -198,11 +198,9 @@ export default function Tournaments() {
           </div>
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-slate-900 text-white font-black h-16 px-10 rounded-[28px] uppercase text-[10px] tracking-widest shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 transition-all active:scale-95 italic">
-              <Plus size={18} className="mr-3" />
-              Sanction New Operations
-            </Button>
+          <DialogTrigger render={<Button className="bg-slate-900 text-white font-black h-16 px-10 rounded-[28px] uppercase text-[10px] tracking-widest shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 transition-all active:scale-95 italic" />}>
+            <Plus size={18} className="mr-3" />
+            Sanction New Operations
           </DialogTrigger>
           <DialogContent className="sm:max-w-[550px] bg-white border-none rounded-[48px] p-0 overflow-hidden shadow-2xl">
             <div className="bg-slate-900 p-12 text-white relative">
