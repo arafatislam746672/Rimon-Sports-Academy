@@ -20,7 +20,7 @@ service cloud.firestore {
     }
 
     function isAdminEmail() {
-      return isVerified() && (request.auth.token.email == "malihajahanshamme@gmail.com" || request.auth.token.email == "arafathislam279@gmail.com");
+      return isVerified() && (request.auth.token.email == "malihajahanshamme@gmail.com" || request.auth.token.email == "arafathislam279@gmail.com" || request.auth.token.email == "raisamoni7466@gmail.com");
     }
 
     function isManagement() {
@@ -91,37 +91,37 @@ service cloud.firestore {
     // Academy Collections
     match /players/{playerId} {
       allow read: if true;
-      allow write: if hasPermission('managePlayers');
+      allow write: if isManagement();
     }
 
     match /teams/{teamId} {
       allow read: if true;
-      allow write: if hasPermission('manageTeams');
+      allow write: if isManagement();
     }
 
     match /matches/{matchId} {
       allow read: if true;
-      allow write: if hasPermission('manageMatches');
+      allow write: if isManagement();
       
       match /commentary/{commentaryId} {
         allow read: if true;
-        allow write: if hasPermission('manageMatches');
+        allow write: if isManagement();
       }
     }
 
     match /tournaments/{tournamentId} {
       allow read: if true;
-      allow write: if hasPermission('manageTournaments');
+      allow write: if isManagement();
     }
 
     match /standings/{standingId} {
       allow read: if true;
-      allow write: if hasPermission('manageTournaments');
+      allow write: if isManagement();
     }
 
     match /attendance/{attendanceId} {
       allow read: if isManagement() || (isSignedIn() && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.playerId in resource.data.presentPlayerIds);
-      allow write: if hasPermission('managePlayers');
+      allow write: if isManagement();
     }
 
     match /submissions/{submissionId} {

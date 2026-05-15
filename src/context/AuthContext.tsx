@@ -72,10 +72,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: authUser.email!,
         name: authUser.displayName || 'New User',
         role: role,
-        status: (role === 'management' || authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com') ? 'approved' : 'pending',
+        status: (role === 'management' || authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com') ? 'approved' : 'pending',
         playerId: playerId || undefined,
-        isSuperAdmin: authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com',
-        permissions: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com') ? { fullControl: true } : undefined
+        isSuperAdmin: authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com',
+        permissions: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com' || role === 'management') ? { 
+          fullControl: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com'),
+          managePlayers: true,
+          manageTeams: true,
+          manageMatches: true,
+          manageTournaments: true,
+          manageProfiles: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com')
+        } : undefined
       };
       await dataService.createUserProfile(userProfile);
     }
@@ -109,10 +116,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: authUser.email!,
       name: name,
       role: role,
-      status: (role === 'management' || authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com') ? 'approved' : 'pending',
+      status: (role === 'management' || authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com') ? 'approved' : 'pending',
       playerId: playerId || undefined,
-      isSuperAdmin: authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com',
-      permissions: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com') ? { fullControl: true } : undefined
+      isSuperAdmin: authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com',
+      permissions: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com' || role === 'management') ? { 
+        fullControl: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com'),
+        managePlayers: true,
+        manageTeams: true,
+        manageMatches: true,
+        manageTournaments: true,
+        manageProfiles: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com')
+      } : undefined
     };
     await dataService.createUserProfile(userProfile);
     setProfile(userProfile);

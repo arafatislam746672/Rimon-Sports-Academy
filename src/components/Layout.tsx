@@ -265,13 +265,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator className="bg-slate-100" />
                   <DropdownMenuGroup className="py-2">
-                    <DropdownMenuItem asChild className="flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer hover:bg-slate-50 focus:bg-slate-50 border border-transparent hover:border-slate-100 transition-all group">
-                      <Link to="/settings" className="flex items-center gap-3 w-full">
-                        <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
-                          <User size={16} className="text-slate-500 group-hover:text-indigo-500" />
-                        </div>
-                        <span className="text-xs font-bold text-slate-700">Account Profile</span>
-                      </Link>
+                    <DropdownMenuItem 
+                      className="flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer hover:bg-slate-50 focus:bg-slate-50 border border-transparent hover:border-slate-100 transition-all group"
+                      render={<Link to="/settings" className="flex items-center gap-3 w-full" />}
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
+                        <User size={16} className="text-slate-500 group-hover:text-indigo-500" />
+                      </div>
+                      <span className="text-xs font-bold text-slate-700">Account Profile</span>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator className="bg-slate-100" />

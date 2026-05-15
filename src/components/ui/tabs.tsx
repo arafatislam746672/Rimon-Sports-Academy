@@ -53,7 +53,7 @@ function TabsList({
   )
 }
 
-function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
+function TabsTrigger({ className, asChild, ...props }: TabsPrimitive.Tab.Props & { asChild?: boolean }) {
   return (
     <TabsPrimitive.Tab
       data-slot="tabs-trigger"
@@ -69,7 +69,7 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
   )
 }
 
-function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
+function TabsContent({ className, asChild, ...props }: TabsPrimitive.Panel.Props & { asChild?: boolean }) {
   return (
     <TabsPrimitive.Panel
       data-slot="tabs-content"

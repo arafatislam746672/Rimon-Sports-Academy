@@ -55,11 +55,12 @@ export const dataService = {
     });
   },
 
-  addPlayer: async (player: Omit<Player, 'id'>) => {
+  addPlayer: async (player: Omit<Player, 'id' | 'academyId'>) => {
     const path = 'players';
     try {
       const newDocRef = doc(collection(db, path));
-      await setDoc(newDocRef, player);
+      const academyId = `ACAD-${Math.floor(1000 + Math.random() * 9000)}`;
+      await setDoc(newDocRef, { ...player, academyId });
       return newDocRef.id;
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, path);

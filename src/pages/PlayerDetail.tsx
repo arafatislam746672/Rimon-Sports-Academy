@@ -20,8 +20,11 @@ import {
   ShieldCheck,
   TrendingUp,
   Workflow,
-  Share2
+  Share2,
+  MessageSquare,
+  QrCode
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   Card, 
   CardContent, 
@@ -191,9 +194,14 @@ export default function PlayerDetail() {
             <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
           </Button>
           <div className="space-y-1">
-            <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic flex items-center gap-3 leading-none">
-              Asset <span className="text-indigo-500">Dossier</span>
-            </h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">
+                Asset <span className="text-indigo-500">Dossier</span>
+              </h2>
+              <Badge className="bg-slate-100 text-slate-500 font-black border-none uppercase tracking-widest text-[9px] px-3 h-6 flex items-center">
+                 ID: {player.academyId || player.id.slice(-6).toUpperCase()}
+              </Badge>
+            </div>
             <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.3em] opacity-80 flex items-center gap-2">
                Active Since {new Date(player.joinedDate).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
             </p>
@@ -269,12 +277,49 @@ export default function PlayerDetail() {
                   </div>
                 </div>
 
-                <Button 
-                  className="w-full bg-slate-900 text-white font-black h-16 rounded-2xl shadow-xl shadow-slate-900/10 hover:bg-indigo-600 transition-all active:scale-95 uppercase tracking-widest text-[10px] italic"
-                  onClick={() => isOwner ? setShowSubmitModal(true) : toast.error("Only the authorized asset or command can submit data.")}
-                >
-                  {isOwner ? 'Transmit Match Intel' : 'Open Channel'}
-                </Button>
+                <div className="grid grid-cols-2 gap-4">
+                  <Button 
+                    className="w-full bg-slate-100 text-slate-900 font-black h-16 rounded-2xl shadow-sm hover:bg-slate-200 transition-all active:scale-95 uppercase tracking-widest text-[9px] italic"
+                    onClick={() => {
+                      const phoneNumber = profile?.phone || '0123456789'; 
+                      window.location.href = `sms:${phoneNumber}`;
+                    }}
+                  >
+                    <MessageSquare size={16} className="mr-2" /> Send SMS
+                  </Button>
+                  <Button 
+                    className="w-full bg-slate-900 text-white font-black h-16 rounded-2xl shadow-xl shadow-slate-900/10 hover:bg-indigo-600 transition-all active:scale-95 uppercase tracking-widest text-[9px] italic"
+                    onClick={() => isOwner ? setShowSubmitModal(true) : toast.error("Only the authorized asset or command can submit data.")}
+                  >
+                    {isOwner ? 'Transmit Intel' : 'Transmit Meta'}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* QR Code Identification Card */}
+          <Card className="border-none shadow-2xl shadow-slate-200/50 bg-white rounded-[48px] overflow-hidden">
+            <CardHeader className="p-10 border-b border-slate-50">
+               <CardTitle className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3 italic">
+                <QrCode size={18} className="text-indigo-500" />
+                Digital ID Authentication
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-10 flex flex-col items-center space-y-6">
+              <div className="p-6 bg-slate-50 rounded-[40px] border border-slate-100 shadow-inner group hover:scale-105 transition-transform duration-500">
+                <QRCodeSVG 
+                  value={window.location.href} 
+                  size={150}
+                  level="H"
+                  includeMargin={false}
+                  bgColor="transparent"
+                  fgColor="#0f172a"
+                />
+              </div>
+              <div className="text-center">
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2 italic">Scan to verify asset credentials</p>
+                 <p className="text-xs font-black text-slate-900 uppercase italic">Authorized Academy Access ONLY</p>
               </div>
             </CardContent>
           </Card>

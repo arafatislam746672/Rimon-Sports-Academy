@@ -26,6 +26,7 @@ export type PlayerStatus = 'prospect' | 'trial' | 'training' | 'elite' | 'gradua
 
 export interface Player {
   id: string;
+  academyId?: string; // Formal unique ID
   name: string;
   photoURL?: string;
   age?: number;
@@ -172,6 +173,7 @@ export interface UserProfile {
   role: UserRole;
   status: UserStatus;
   playerId?: string; // Links user account to specific player data
+  academyId?: string; // Formal unique ID
   name: string;
   photoURL?: string;
   isSuperAdmin?: boolean;

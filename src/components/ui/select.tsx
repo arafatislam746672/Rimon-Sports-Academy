@@ -32,9 +32,11 @@ function SelectTrigger({
   className,
   size = "default",
   children,
+  asChild, // Destructure to prevent leaking
   ...props
 }: SelectPrimitive.Trigger.Props & {
   size?: "sm" | "default"
+  asChild?: boolean
 }) {
   return (
     <SelectPrimitive.Trigger

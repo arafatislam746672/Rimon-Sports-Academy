@@ -14,7 +14,8 @@ import {
   ClipboardCheck,
   Award,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Star
 } from 'lucide-react';
 import { 
   Card, 
@@ -373,46 +374,88 @@ function ManagementDashboard({ players, matches, teams }: { players: Player[], m
   );
 }
 
-function PlayerDashboard({ player, matches }: { player: Player, matches: Match[] }) {
+function PlayerDashboard({ player, matches, allPlayers }: { player: Player, matches: Match[], allPlayers: Player[] }) {
   const navigate = useNavigate();
   
   const personalStats = React.useMemo(() => {
-    const stats: { label: string, value: any, icon: any, color: string, bg: string }[] = [];
-    if (player.stats.cricket.matches > 0) {
-      stats.push({ label: 'Cricket Runs', value: player.stats.cricket.runs, icon: Trophy, color: 'text-indigo-500', bg: 'bg-indigo-500/10' });
-      stats.push({ label: 'Avg Strike Rate', value: player.stats.cricket.strikeRate, icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-500/10' });
+    const stats: { label: string, value: any, icon: any, color: string, bg: string, academyAvg?: string }[] = [];
+    
+    const calculateAvg = (sport: Sport, field: string) => {
+      const activePlayers = allPlayers.filter(p => p.stats[sport].matches > 0);
+      if (activePlayers.length === 0) return '0';
+      const sum = activePlayers.reduce((acc, p) => acc + ((p.stats[sport] as any)[field] || 0), 0);
+      return (sum / activePlayers.length).toFixed(1);
+    };
+
+    if (player.stats.cricket.matches > 0 || player.primarySport === 'cricket') {
+      stats.push({ 
+        label: 'Runs Scored', 
+        value: player.stats.cricket.runs, 
+        icon: Trophy, 
+        color: 'text-indigo-500', 
+        bg: 'bg-indigo-500/10',
+        academyAvg: calculateAvg('cricket', 'runs')
+      });
+      stats.push({ 
+        label: 'Strike Rate', 
+        value: player.stats.cricket.strikeRate.toFixed(1), 
+        icon: Activity, 
+        color: 'text-emerald-500', 
+        bg: 'bg-emerald-500/10',
+        academyAvg: calculateAvg('cricket', 'strikeRate')
+      });
     }
-    if (player.stats.football.matches > 0) {
-      stats.push({ label: 'Football Goals', value: player.stats.football.goals, icon: Target, color: 'text-indigo-500', bg: 'bg-indigo-500/10' });
-      stats.push({ label: 'Total Assists', value: player.stats.football.assists, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' });
-    }
-    if (player.stats.badminton.matches > 0) {
-      stats.push({ label: 'Badminton Wins', value: player.stats.badminton.wins, icon: Award, color: 'text-indigo-500', bg: 'bg-indigo-500/10' });
-      stats.push({ label: 'Win Rate', value: `${player.stats.badminton.winRate}%`, icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-500/10' });
+    if (player.stats.football.matches > 0 || player.primarySport === 'football') {
+      stats.push({ 
+        label: 'Goals', 
+        value: player.stats.football.goals, 
+        icon: Target, 
+        color: 'text-rose-500', 
+        bg: 'bg-rose-500/10',
+        academyAvg: calculateAvg('football', 'goals')
+      });
+      stats.push({ 
+        label: 'Assists', 
+        value: player.stats.football.assists, 
+        icon: TrendingUp, 
+        color: 'text-sky-500', 
+        bg: 'bg-sky-500/10',
+        academyAvg: calculateAvg('football', 'assists')
+      });
     }
     return stats;
-  }, [player]);
+  }, [player, allPlayers]);
+
+  const [attendance, setAttendance] = React.useState<any[]>([]);
+  React.useEffect(() => {
+    return dataService.getPlayerAttendance(player.id, setAttendance);
+  }, [player.id]);
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1">
-          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic flex items-center gap-3">
-            Athlete <span className="bg-indigo-500 text-white px-3 py-1 rounded-2xl skew-x-[-6deg] not-italic">Dashboard</span>
-          </h1>
-          <p className="text-slate-400 text-sm font-bold uppercase tracking-[0.2em] opacity-80">Personal Development & Performance Metrics</p>
+          <div className="flex items-center gap-3">
+             <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">
+               Elite <span className="bg-indigo-500 text-white px-3 py-1 rounded-2xl skew-x-[-6deg] not-italic text-3xl">Portal</span>
+             </h1>
+             <Badge className="bg-slate-100 text-slate-500 font-black border-none uppercase tracking-widest text-[9px] px-3">
+               ID: {player.academyId || player.id.slice(-6).toUpperCase()}
+             </Badge>
+          </div>
+          <p className="text-slate-400 text-sm font-bold uppercase tracking-[0.2em] opacity-80">Personal Performance & Growth Intelligence</p>
         </div>
         <div className="flex gap-4">
           <Button 
             onClick={() => navigate(`/players/${player.id}`)}
-            className="bg-slate-900 text-white hover:bg-indigo-600 font-black uppercase text-[10px] tracking-widest h-14 px-10 rounded-2xl shadow-xl shadow-slate-900/10 transition-all active:scale-95"
+            className="bg-slate-900 text-white hover:bg-indigo-600 font-black uppercase text-[10px] tracking-widest h-14 px-10 rounded-2xl shadow-xl shadow-slate-900/10 transition-all active:scale-95 italic"
           >
-            <Plus size={16} className="mr-2" /> Submit Match Score
+            <UserIcon size={16} className="mr-2" /> View Digital Profile
           </Button>
         </div>
       </header>
 
-      {/* Stats Overview */}
+      {/* Stats Comparison Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {personalStats.map((stat, i) => (
           <motion.div
@@ -427,133 +470,129 @@ function PlayerDashboard({ player, matches }: { player: Player, matches: Match[]
                     <div className={cn("p-4 rounded-2xl transition-transform group-hover:rotate-6", stat.bg)}>
                        <stat.icon size={22} className={stat.color} />
                     </div>
+                    {stat.academyAvg && (
+                       <div className="text-right">
+                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Academy Avg</p>
+                          <p className="text-sm font-black text-slate-900 italic">{stat.academyAvg}</p>
+                       </div>
+                    )}
                  </div>
                  <div>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{stat.label}</p>
-                    <p className="text-4xl font-black text-slate-900 tracking-tight italic">{stat.value}</p>
+                    <div className="flex items-baseline gap-3">
+                       <p className="text-4xl font-black text-slate-900 tracking-tight italic">{stat.value}</p>
+                       {stat.academyAvg && (
+                          <Badge className={cn(
+                            "text-[8px] font-black uppercase tracking-widest border-none px-2",
+                            Number(stat.value) >= Number(stat.academyAvg) ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                          )}>
+                             {Number(stat.value) >= Number(stat.academyAvg) ? "Above Avg" : "Below Avg"}
+                          </Badge>
+                       )}
+                    </div>
                  </div>
               </CardContent>
               <div className={cn("h-1.5 w-full", stat.bg)} />
             </Card>
           </motion.div>
         ))}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="elite-card bg-slate-900 border-none shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform duration-700">
-               <Users size={120} className="text-indigo-400" />
-            </div>
-            <CardContent className="p-8 relative z-10">
-               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-1.5 opacity-80">Academy Status</p>
-               <h3 className="text-4xl font-black italic text-white tracking-widest uppercase">
-                 {player.status === 'elite' ? 'Elite' : player.status === 'training' ? 'Active' : 'Pending'}
-               </h3>
-               <p className="text-[9px] font-bold text-white/40 uppercase tracking-[0.3em] mt-2">Operational Tier A</p>
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
          {/* Performance Chart */}
          <Card className="lg:col-span-2 elite-card border-none shadow-2xl shadow-slate-200/50 p-10">
-            <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-10 flex items-center gap-3">
-              <Activity size={16} className="text-indigo-500" /> Performance Metric Deviation
+            <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-10 flex items-center gap-3 italic">
+              <Activity size={16} className="text-indigo-500" /> Operational Growth History
             </h4>
-            <div className="h-[300px] w-full">
+            <div className="h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={[
-                  { name: 'Wk 1', score: 10 },
-                  { name: 'Wk 2', score: 25 },
-                  { name: 'Wk 3', score: 12 },
-                  { name: 'Wk 4', score: 40 },
-                  { name: 'Wk 5', score: 35 },
-                  { name: 'Wk 6', score: 55 },
+                  { name: 'Jan', score: 20 },
+                  { name: 'Feb', score: 35 },
+                  { name: 'Mar', score: 25 },
+                  { name: 'Apr', score: 45 },
+                  { name: 'May', score: 55 },
+                  { name: 'Jun', score: 65 },
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
                   <XAxis dataKey="name" fontSize={9} fontWeights="black" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} dy={10} />
                   <YAxis fontSize={9} fontWeights="black" tick={{fill: '#94a3b8'}} axisLine={false} tickLine={false} />
                   <Tooltip 
-                    contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', fontWeight: '900', textTransform: 'uppercase', fontSize: '10px', background: 'rgba(15, 23, 42, 0.95)', color: 'white' }}
+                    contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', fontWeight: '900', textTransform: 'uppercase', fontSize: '10px', background: 'rgba(15, 23, 42, 1)', color: 'white' }}
                   />
-                  <Line type="monotone" dataKey="score" stroke="#6366F1" strokeWidth={5} dot={{ r: 6, fill: '#6366F1', stroke: 'white', strokeWidth: 3 }} activeDot={{ r: 10, fill: '#0F172A' }} />
+                  <Line type="monotone" dataKey="score" stroke="#6366F1" strokeWidth={6} dot={{ r: 6, fill: '#6366F1', stroke: 'white', strokeWidth: 4 }} activeDot={{ r: 10, fill: '#0F172A' }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
          </Card>
 
-         {/* Upcoming Personal Match */}
-         <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 bg-white overflow-hidden relative group">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform">
-               <CalendarIcon size={200} />
-            </div>
+         {/* Attendance Card */}
+         <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 bg-white overflow-hidden flex flex-col">
             <CardHeader className="border-b border-slate-50 px-10 py-8 bg-slate-50/50">
-               <CardTitle className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Next Deployment</CardTitle>
+               <CardTitle className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] italic">Attendance Integrity</CardTitle>
             </CardHeader>
-            <CardContent className="p-10 flex flex-col justify-center text-center space-y-8">
-               <div className="w-24 h-24 bg-slate-50 rounded-[32px] flex items-center justify-center mx-auto shadow-inner border border-slate-100 group-hover:rotate-6 transition-transform">
-                  <CalendarIcon size={40} className="text-indigo-500" />
-               </div>
-               <div>
-                  <h5 className="text-2xl font-black text-slate-900 tracking-tight uppercase italic mb-1">Inter-Club Qualifier</h5>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Saturday, May 25th • 10:00 AM</p>
-               </div>
-               <div className="pt-6 grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                     <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Sector</p>
-                     <p className="text-[10px] font-black text-slate-900 uppercase italic">Main Turf</p>
+            <CardContent className="p-10 flex-1 flex flex-col justify-between space-y-8">
+               <div className="text-center space-y-4">
+                  <div className="relative inline-block">
+                     <div className="w-32 h-32 rounded-[40px] bg-slate-900 flex flex-col items-center justify-center text-white border-8 border-slate-100 shadow-2xl">
+                        <p className="text-4xl font-black italic">{attendance.length}</p>
+                        <p className="text-[8px] font-black uppercase tracking-widest opacity-60">Sessions</p>
+                     </div>
+                     <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-emerald-500 rounded-2xl border-4 border-white flex items-center justify-center text-white shadow-xl">
+                        <ShieldCheck size={20} />
+                     </div>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                     <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Vertical</p>
-                     <p className="text-[10px] font-black text-slate-900 uppercase italic">{player.primarySport}</p>
+                  <div>
+                    <h5 className="text-xl font-black text-slate-900 tracking-tight uppercase italic leading-none mb-1">Operational Presence</h5>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Current Month Cycle</p>
                   </div>
                </div>
-               <Button className="w-full bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest h-14 rounded-2xl shadow-xl shadow-slate-900/10 hover:bg-indigo-600 transition-all">Mission Analysis</Button>
+
+               <div className="space-y-3">
+                  <p className="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-2 italic">Recent Sessions</p>
+                  {attendance.slice(0, 3).map((a, i) => (
+                    <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-500/20 transition-all">
+                       <span className="text-[10px] font-black text-slate-900 uppercase italic">{new Date(a.date).toLocaleDateString(undefined, { weekday: 'long', day: 'numeric' })}</span>
+                       <Badge className="bg-emerald-50 text-emerald-600 text-[8px] font-black border-none uppercase tracking-widest">Present</Badge>
+                    </div>
+                  ))}
+                  {attendance.length === 0 && <p className="text-[10px] font-bold text-slate-300 uppercase italic py-4">No sessions documented</p>}
+               </div>
+
+               <Button className="w-full bg-slate-100 text-slate-500 hover:bg-slate-900 hover:text-white font-black uppercase text-[10px] tracking-widest h-14 rounded-2xl transition-all shadow-sm">View Full Log</Button>
             </CardContent>
          </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-         {/* Recent Submissions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+         {/* Achievements */}
          <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 overflow-hidden">
             <CardHeader className="border-b border-slate-50 bg-slate-50/50 px-8 py-6">
-               <CardTitle className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Log Submissions</CardTitle>
+               <CardTitle className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] italic">Strategic Achievements</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-               <div className="divide-y divide-slate-50">
-                  {[
-                    { title: "Friendly v Titans", date: "18 May", status: "pending" },
-                    { title: "Weekend Knockout", date: "12 May", status: "approved" }
-                  ].map((sub, i) => (
-                    <div key={i} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-all cursor-pointer group">
-                       <div className="flex items-center gap-4">
-                          <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-100 group-hover:text-indigo-500 transition-colors">
-                            <Clock size={18} />
-                          </div>
-                          <div>
-                             <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight italic">{sub.title}</p>
-                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{sub.date}</p>
-                          </div>
-                       </div>
-                       <Badge className={cn(
-                         "text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border-none",
-                         sub.status === 'approved' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
-                       )}>
-                          {sub.status}
-                       </Badge>
+            <CardContent className="p-8 space-y-6">
+               {[
+                 { title: "Century Milestone", icon: Award, color: "text-amber-500", bg: "bg-amber-50", date: "May 2026" },
+                 { title: "Ironman Attendance", icon: ShieldCheck, color: "text-emerald-500", bg: "bg-emerald-50", date: "April 2026" },
+                 { title: "MVP Contender", icon: Star, color: "text-indigo-500", bg: "bg-indigo-50", date: "Ongoing" }
+               ].map((ach, i) => (
+                 <div key={i} className="flex items-center gap-5 group cursor-pointer">
+                    <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-6 shadow-sm", ach.bg)}>
+                       <ach.icon size={24} className={ach.color} />
                     </div>
-                  ))}
-               </div>
+                    <div>
+                       <p className="text-sm font-black text-slate-900 uppercase italic tracking-tight group-hover:text-indigo-600 transition-colors">{ach.title}</p>
+                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{ach.date}</p>
+                    </div>
+                 </div>
+               ))}
             </CardContent>
          </Card>
 
          {/* Academy News Feed */}
          <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 overflow-hidden">
             <CardHeader className="border-b border-slate-50 bg-slate-50/50 px-8 py-6">
-               <CardTitle className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Intelligence Feed</CardTitle>
+               <CardTitle className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] italic">Intelligence Feed</CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
                {[
@@ -810,7 +849,7 @@ export default function Dashboard() {
   }
 
   if (profile?.role === 'player' && currentPlayer) {
-    return <PlayerDashboard player={currentPlayer} matches={matches} />;
+    return <PlayerDashboard player={currentPlayer} matches={matches} allPlayers={players} />;
   }
 
   return <ManagementDashboard players={players} matches={matches} teams={teams} />;

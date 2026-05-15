@@ -31,8 +31,9 @@ function Badge({
   className,
   variant = "default",
   render,
+  asChild, // Destructure to prevent leaking
   ...props
-}: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
+}: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
   return useRender({
     defaultTagName: "span",
     props: mergeProps<"span">(

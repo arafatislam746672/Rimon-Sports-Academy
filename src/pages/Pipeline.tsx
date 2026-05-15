@@ -14,7 +14,9 @@ import {
   Users,
   Settings,
   Menu,
-  ChevronDown
+  ChevronDown,
+  Briefcase,
+  AlertCircle
 } from 'lucide-react';
 import { dataService } from '@/services/dataService';
 import { Player, PlayerStatus, Sport, Team, TopEleven } from '@/types';
@@ -62,11 +64,14 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const STAGES: { id: PlayerStatus, label: string, icon: any, color: string }[] = [
-  { id: 'prospect', label: 'Prospects', icon: CircleDot, color: 'bg-blue-500' },
-  { id: 'trial', label: 'In Trial', icon: Activity, color: 'bg-yellow-500' },
+  { id: 'prospect', label: 'Prospect', icon: CircleDot, color: 'bg-blue-500' },
+  { id: 'trial', label: 'Trial', icon: Activity, color: 'bg-yellow-500' },
   { id: 'training', label: 'Training', icon: Workflow, color: 'bg-purple-500' },
-  { id: 'elite', label: 'Elite Squad', icon: Award, color: 'bg-amber-500' },
-  { id: 'graduate', label: 'Graduates', icon: GraduationCap, color: 'bg-green-500' }
+  { id: 'elite', label: 'Elite', icon: Award, color: 'bg-amber-500' },
+  { id: 'graduate', label: 'Graduate', icon: GraduationCap, color: 'bg-green-500' },
+  { id: 'suspended', label: 'Suspended', icon: AlertCircle, color: 'bg-red-500' },
+  { id: 'study', label: 'Study', icon: GraduationCap, color: 'bg-indigo-500' },
+  { id: 'jobs', label: 'Career', icon: Briefcase, color: 'bg-slate-500' }
 ];
 
 export default function Pipeline() {
@@ -343,10 +348,19 @@ export default function Pipeline() {
                                <AvatarImage src={player.photoURL} alt={player.name} className="object-cover" />
                                <AvatarFallback className="font-black text-slate-400">{player.name[0]}</AvatarFallback>
                              </Avatar>
-                             <Link to={`/players/${player.id}`} className="flex flex-col hover:text-indigo-500 transition-colors">
-                               <span className="text-[14px] font-black uppercase italic tracking-tight">{player.name}</span>
-                               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ID-7492{player.id.slice(-4)}</span>
-                             </Link>
+                              <Link to={`/players/${player.id}`} className="flex flex-col hover:text-indigo-500 transition-colors">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[14px] font-black uppercase italic tracking-tight">{player.name}</span>
+                                  <Badge variant="outline" className={cn(
+                                    "font-black text-[7px] border rounded-md px-1.5 h-4 flex items-center uppercase",
+                                    (STAGES.find(s => s.id === player.status) || STAGES[0]).color.replace('bg-', 'text-').replace('-500', '-600'),
+                                    (STAGES.find(s => s.id === player.status) || STAGES[0]).color.replace('bg-', 'bg-').replace('-500', '-50')
+                                  )}>
+                                    {player.status || 'prospect'}
+                                  </Badge>
+                                </div>
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ID-7492{player.id.slice(-4)}</span>
+                              </Link>
                            </div>
                         </td>
                         <td className="px-6 py-6 font-black text-[11px] uppercase text-slate-600 italic tracking-widest">
@@ -508,9 +522,18 @@ function PlayerPipelineCard({
                       {(player.primarySport || 'cricket').toUpperCase()} CORE
                    </p>
                  </div>
-                <h4 className="font-black text-slate-900 text-lg leading-tight group-hover:text-indigo-500 transition-colors uppercase tracking-tight italic">
-                  {player.name}
-                </h4>
+                <div className="flex flex-col gap-2">
+                  <h4 className="font-black text-slate-900 text-lg leading-tight group-hover:text-indigo-500 transition-colors uppercase tracking-tight italic">
+                    {player.name}
+                  </h4>
+                  <Badge variant="outline" className={cn(
+                    "font-black text-[7px] uppercase px-2 py-0.5 rounded-md border w-fit",
+                    (STAGES.find(s => s.id === player.status) || STAGES[0]).color.replace('bg-', 'text-').replace('-500', '-600'),
+                    (STAGES.find(s => s.id === player.status) || STAGES[0]).color.replace('bg-', 'bg-').replace('-500', '-50')
+                  )}>
+                    {STAGES.find(s => s.id === player.status)?.label || player.status || 'prospect'}
+                  </Badge>
+                </div>
               </div>
             </div>
             
