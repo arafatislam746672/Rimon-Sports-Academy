@@ -215,9 +215,9 @@ export default function Scoring() {
           </p>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
            <Select value={matchId} onValueChange={handleMatchSelect}>
-              <SelectTrigger className="w-[300px] bg-white h-16 rounded-[24px] border-none shadow-2xl shadow-slate-200/50 font-black text-[10px] uppercase tracking-widest px-8 group hover:bg-slate-900 hover:text-white transition-all ring-offset-transparent focus:ring-0">
+              <SelectTrigger className="w-full sm:w-[300px] bg-white h-16 rounded-[24px] border-none shadow-2xl shadow-slate-200/50 font-black text-[10px] uppercase tracking-widest px-8 group hover:bg-slate-900 hover:text-white transition-all ring-offset-transparent focus:ring-0">
                 <SelectValue placeholder="Select Active Mission" />
               </SelectTrigger>
               <SelectContent className="rounded-[24px] border-none shadow-2xl p-2">
@@ -276,27 +276,23 @@ export default function Scoring() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.02 }}
                 transition={{ duration: 0.4 }}
-                className={cn(!canScore && "pointer-events-none opacity-80 blur-[2px]")}
+                className={cn("relative")}
               >
                 {!canScore && (
-                  <div className="absolute inset-0 z-50 flex items-center justify-center p-10 bg-white/10 backdrop-blur-sm rounded-[64px]">
-                    <div className="bg-slate-900 p-10 rounded-[40px] shadow-2xl text-center space-y-6 max-w-md border border-white/10">
-                       <ShieldCheck size={48} className="text-indigo-400 mx-auto" />
-                       <div className="space-y-2">
-                          <h4 className="text-xl font-black uppercase italic text-white tracking-tighter">Security Lock Active</h4>
-                          <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] leading-relaxed">Your digital signature does not match Command or Squad Leadership credentials for this mission.</p>
-                       </div>
-                    </div>
+                  <div className="absolute top-6 right-6 z-50">
+                    <Badge className="bg-amber-500 text-white border-none font-black text-[9px] uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg shadow-amber-500/20 flex items-center gap-2">
+                       <ShieldCheck size={12} /> Read-Only Access
+                    </Badge>
                   </div>
                 )}
                 {selectedMatch.sport === 'cricket' && (
-                  <CricketIngestor match={selectedMatch} onUpdate={handleUpdateMatchScore} isSyncing={isSyncing} players={players} teams={teams} />
+                  <CricketIngestor match={selectedMatch} onUpdate={handleUpdateMatchScore} isSyncing={isSyncing} players={players} teams={teams} canScore={canScore} />
                 )}
                 {selectedMatch.sport === 'football' && (
-                  <FootballIngestor match={selectedMatch} onUpdate={handleUpdateMatchScore} isSyncing={isSyncing} players={players} teams={teams} />
+                  <FootballIngestor match={selectedMatch} onUpdate={handleUpdateMatchScore} isSyncing={isSyncing} players={players} teams={teams} canScore={canScore} />
                 )}
                 {selectedMatch.sport === 'badminton' && (
-                  <BadmintonIngestor match={selectedMatch} onUpdate={handleUpdateMatchScore} isSyncing={isSyncing} players={players} />
+                  <BadmintonIngestor match={selectedMatch} onUpdate={handleUpdateMatchScore} isSyncing={isSyncing} players={players} canScore={canScore} />
                 )}
               </motion.div>
             </AnimatePresence>
@@ -400,8 +396,8 @@ export default function Scoring() {
   );
 }
 
-// Sub-interfaces - Redesigning them as well
-function CricketIngestor({ match, onUpdate, isSyncing, players, teams }: any) {
+// Sub-interfaces
+function CricketIngestor({ match, onUpdate, isSyncing, players, teams, canScore }: any) {
   const score = match.score as CricketScore;
   const team1 = teams.find((t: any) => t.id === match.team1Id);
   const team2 = teams.find((t: any) => t.id === match.team2Id);
@@ -417,6 +413,13 @@ function CricketIngestor({ match, onUpdate, isSyncing, players, teams }: any) {
   const battingPlayers = players.filter((p: Player) => 
     match.participants.includes(p.id) && (p.primarySport === 'cricket' || p.primarySport === undefined)
   );
+
+  const getTeamCode = (name?: string) => {
+    if (!name) return 'UNK';
+    const parts = name.split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0] + (parts[2]?.[0] || parts[1][1] || '')).toUpperCase();
+    return name.substring(0, 3).toUpperCase();
+  };
 
   const updateStats = (runs: number, isWicket: boolean = false, extraType?: 'wide' | 'noball') => {
     const newScore = JSON.parse(JSON.stringify(score));
@@ -469,7 +472,7 @@ function CricketIngestor({ match, onUpdate, isSyncing, players, teams }: any) {
           bowler.overs += 1;
         }
       } else {
-        bowler.runs += 1; // Extras count towards bowler usually (except byes/leg-byes which we simplify here)
+        bowler.runs += 1; 
       }
       
       if (isWicket) bowler.wickets += 1;
@@ -485,21 +488,18 @@ function CricketIngestor({ match, onUpdate, isSyncing, players, teams }: any) {
       if (battingTeam.balls >= 6) {
         battingTeam.balls = 0;
         battingTeam.overs += 1;
-        // Auto-rotate strike on over end
         const temp = strikerId;
         setStrikerId(nonStrikerId);
         setNonStrikerId(temp);
       }
     }
 
-    // Rotate strike on odd runs
     if (runs % 2 !== 0 && !extraType) {
       const temp = strikerId;
       setStrikerId(nonStrikerId);
       setNonStrikerId(temp);
     }
 
-    // History
     newScore.ballsHistory = [...(newScore.ballsHistory || []), isWicket ? -1 : runs];
     if (newScore.ballsHistory.length > 24) newScore.ballsHistory.shift();
 
@@ -511,83 +511,130 @@ function CricketIngestor({ match, onUpdate, isSyncing, players, teams }: any) {
     onUpdate(newScore, eventType);
   };
 
+  const currentBattingTeam = score[battingTeamKey];
+  const currentStriker = currentBattingTeam.scorecard?.batting.find((b: any) => b.playerId === strikerId);
+
   return (
     <Card className="rounded-[64px] border-none shadow-2xl shadow-indigo-100 overflow-hidden bg-white">
-      <CardHeader className="bg-slate-900 p-12 text-white relative">
-         <div className="absolute top-0 right-0 p-12 opacity-5">
-            <Trophy size={200} />
-         </div>
-         <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-12">
-            <div className={cn(
-              "text-center space-y-4 flex-1 group transition-all",
-              battingTeamKey === 'team1' ? "opacity-100 scale-105" : "opacity-40"
-            )}>
-               <span className="text-[10px] font-black uppercase text-indigo-400 tracking-[0.4em] italic mb-4 block">
-                 {battingTeamKey === 'team1' ? 'Batting Unit' : 'Defending'}
-               </span>
-               <div className="text-8xl font-black italic tracking-tighter">
-                  {score.team1.runs}<span className="text-white/10 text-6xl mx-2">/</span>{score.team1.wickets}
-               </div>
-               <Badge className="bg-white/5 border border-white/10 text-white/40 font-black text-[9px] uppercase tracking-widest px-6 py-2 rounded-full">
-                  {score.team1.overs}.{score.team1.balls} OVERS
-               </Badge>
-            </div>
-            
-            <div className="flex flex-col items-center gap-4">
-               <div className="w-16 h-16 bg-white/5 rounded-full border border-white/10 flex items-center justify-center text-xl font-black italic opacity-20">VS</div>
-               <Button 
-                variant="ghost" 
-                className="text-[8px] font-black uppercase tracking-widest text-indigo-400 hover:text-white"
-                onClick={() => onUpdate({ ...score, currentInnings: score.currentInnings === 1 ? 2 : 1 })}
-               >
-                 Switch Innings
-               </Button>
-            </div>
+      {/* IPL BROADCAST STYLE SCOREBOARD */}
+      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-indigo-950 p-8 text-white relative">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+        
+        <div className="relative z-10 flex flex-col gap-8">
+           {/* Team Info & Main Score */}
+           <div className="flex flex-col md:flex-row justify-between items-center gap-12 border-b border-white/10 pb-8">
+              <div className="flex items-center gap-8 group">
+                 <div className="w-20 h-20 rounded-[28px] bg-white text-indigo-900 flex items-center justify-center font-black text-2xl italic shadow-2xl transform group-hover:rotate-6 transition-transform">
+                   {getTeamCode(currentTeamIndex === 1 ? team1?.name : team2?.name)}
+                 </div>
+                 <div className="space-y-1">
+                    <span className="text-amber-400 text-[10px] font-black uppercase tracking-[0.4em] italic block">CURRENT INNINGS</span>
+                    <h2 className="text-4xl font-black italic tracking-tighter uppercase whitespace-nowrap">
+                       {(currentTeamIndex === 1 ? team1?.name : team2?.name) || 'Tactical Squad'}
+                    </h2>
+                 </div>
+              </div>
 
-            <div className={cn(
-              "text-center space-y-4 flex-1 group transition-all",
-              battingTeamKey === 'team2' ? "opacity-100 scale-105" : "opacity-40"
-            )}>
-               <span className="text-[10px] font-black uppercase text-slate-600 tracking-[0.4em] italic mb-4 block">
-                 {battingTeamKey === 'team2' ? 'Batting Unit' : 'Defending'}
-               </span>
-               <div className="text-8xl font-black italic tracking-tighter">
-                  {score.team2.runs}<span className="text-white/10 text-6xl mx-2">/</span>{score.team2.wickets}
-               </div>
-               <Badge className="bg-white/5 border border-white/10 text-white/20 font-black text-[9px] uppercase tracking-widest px-6 py-2 rounded-full">
-                  {score.team2.overs}.{score.team2.balls} OVERS
-               </Badge>
-            </div>
-         </div>
-      </CardHeader>
+              <div className="text-center md:text-right group">
+                 <motion.div 
+                   key={currentBattingTeam.runs}
+                   initial={{ scale: 1.2, color: '#fbbf24' }}
+                   animate={{ scale: 1, color: '#ffffff' }}
+                   className="text-8xl font-black italic tracking-tighter leading-none"
+                 >
+                    {currentBattingTeam.runs}<span className="text-white/20 text-6xl mx-2 font-normal">/</span>{currentBattingTeam.wickets}
+                 </motion.div>
+                 <div className="flex items-center justify-center md:justify-end gap-3 mt-4">
+                    <Badge className="bg-amber-400 text-indigo-950 border-none font-black text-[11px] uppercase tracking-widest px-6 py-2 rounded-full shadow-lg shadow-amber-400/20">
+                       {currentBattingTeam.overs}.{currentBattingTeam.balls} OVERS
+                    </Badge>
+                 </div>
+              </div>
+           </div>
+
+           {/* Live Assets - Striker/Bowler Mini Stats */}
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white/5 backdrop-blur-md rounded-[32px] p-6 border border-white/10 flex items-center justify-between hover:bg-white/10 transition-all cursor-default">
+                 <div className="flex items-center gap-4">
+                    <div className="w-2 h-8 bg-amber-400 rounded-full" />
+                    <div>
+                       <p className="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none mb-2">STRIKER</p>
+                       <p className="text-lg font-black italic uppercase leading-none">{currentStriker?.name || 'Awaiting Asset'}</p>
+                    </div>
+                 </div>
+                 <div className="text-right">
+                    <p className="text-2xl font-black italic text-amber-400">{currentStriker?.runs || 0}</p>
+                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">({currentStriker?.balls || 0})</p>
+                 </div>
+              </div>
+
+              <div className="bg-white/5 backdrop-blur-md rounded-[32px] p-6 border border-white/10 flex items-center justify-between hover:bg-white/10 transition-all cursor-default">
+                 <div className="flex items-center gap-4">
+                    <div className="w-2 h-8 bg-white/20 rounded-full" />
+                    <div>
+                       <p className="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none mb-2">PARTNER</p>
+                       <p className="text-lg font-black italic uppercase leading-none">
+                         {currentBattingTeam.scorecard?.batting.find((b: any) => b.playerId === nonStrikerId)?.name || 'Syncing...'}
+                       </p>
+                    </div>
+                 </div>
+                 <div className="text-right">
+                    <p className="text-2xl font-black italic text-white/50">
+                       {currentBattingTeam.scorecard?.batting.find((b: any) => b.playerId === nonStrikerId)?.runs || 0}
+                    </p>
+                 </div>
+              </div>
+
+              <div className="bg-indigo-600/20 backdrop-blur-md rounded-[32px] p-6 border border-indigo-400/20 flex items-center justify-between hover:bg-indigo-600/30 transition-all cursor-default overflow-hidden relative">
+                 <div className="absolute right-0 top-0 p-4 opacity-5 pointer-events-none">
+                    <Users size={80} />
+                 </div>
+                 <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-2 h-8 bg-indigo-400 rounded-full animate-pulse" />
+                    <div>
+                       <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest leading-none mb-2">BOWLER</p>
+                       <p className="text-lg font-black italic uppercase leading-none">
+                         {(score[bowlingTeamKey].scorecard?.bowling.find((b: any) => b.playerId === bowlerId)?.name) || 'Selecting...'}
+                       </p>
+                    </div>
+                 </div>
+                 <div className="text-right relative z-10">
+                    <p className="text-2xl font-black italic text-indigo-400">
+                       {(score[bowlingTeamKey].scorecard?.bowling.find((b: any) => b.playerId === bowlerId)?.wickets || 0)}-{(score[bowlingTeamKey].scorecard?.bowling.find((b: any) => b.playerId === bowlerId)?.runs || 0)}
+                    </p>
+                 </div>
+              </div>
+           </div>
+        </div>
+      </div>
       
-      <CardContent className="p-12 space-y-12">
+      <CardContent className="p-12 space-y-12 bg-slate-50/50">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-           {/* Active Selection */}
-           <div className="md:col-span-2 space-y-10">
-              <div className="grid grid-cols-2 gap-6">
+           {/* Control Hub */}
+           <div className="md:col-span-2 space-y-10 bg-white p-10 rounded-[48px] shadow-inner border border-white">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-black uppercase tracking-widest ml-4">Striker (On Strike)</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-[0.3em] ml-4 text-slate-400 italic">Command Striker</Label>
                   <Select value={strikerId} onValueChange={setStrikerId}>
-                    <SelectTrigger className="h-16 rounded-2xl bg-slate-50 border-none px-6 font-black uppercase text-[10px] italic">
-                      <SelectValue placeholder="Select Striker" />
+                    <SelectTrigger className="h-16 rounded-[24px] bg-slate-50 border-none px-8 font-black uppercase text-[10px] italic shadow-sm hover:bg-slate-100 transition-all ring-offset-transparent focus:ring-0">
+                      <SelectValue placeholder="Identify Personnel" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
+                    <SelectContent className="rounded-[24px] border-none shadow-2xl p-2 bg-white">
                        {battingPlayers.map(p => (
-                         <SelectItem key={p.id} value={p.id} className="rounded-xl font-black text-[10px] uppercase py-3 italic">{p.name}</SelectItem>
+                         <SelectItem key={p.id} value={p.id} className="rounded-xl font-black text-[10px] uppercase py-4 italic transition-all">{p.name}</SelectItem>
                        ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-black uppercase tracking-widest ml-4">Non-Striker</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-[0.3em] ml-4 text-slate-400 italic">Wingman Asset</Label>
                   <Select value={nonStrikerId} onValueChange={setNonStrikerId}>
-                    <SelectTrigger className="h-16 rounded-2xl bg-slate-50 border-none px-6 font-black uppercase text-[10px] italic">
-                      <SelectValue placeholder="Select Non-Striker" />
+                    <SelectTrigger className="h-16 rounded-[24px] bg-slate-50 border-none px-8 font-black uppercase text-[10px] italic shadow-sm hover:bg-slate-100 transition-all ring-offset-transparent focus:ring-0">
+                      <SelectValue placeholder="Identify Support" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
+                    <SelectContent className="rounded-[24px] border-none shadow-2xl p-2 bg-white">
                        {battingPlayers.map(p => (
-                         <SelectItem key={p.id} value={p.id} className="rounded-xl font-black text-[10px] uppercase py-3 italic">{p.name}</SelectItem>
+                         <SelectItem key={p.id} value={p.id} className="rounded-xl font-black text-[10px] uppercase py-4 italic transition-all">{p.name}</SelectItem>
                        ))}
                     </SelectContent>
                   </Select>
@@ -595,102 +642,105 @@ function CricketIngestor({ match, onUpdate, isSyncing, players, teams }: any) {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-widest ml-4 text-indigo-500">Current Bowler</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.3em] ml-4 text-indigo-500 italic">Opposition Projectile Agent (Bowler)</Label>
                 <Select value={bowlerId} onValueChange={setBowlerId}>
-                  <SelectTrigger className="h-16 rounded-2xl bg-indigo-50 border-none px-6 font-black uppercase text-[10px] text-indigo-600 italic">
-                    <SelectValue placeholder="Select Bowler" />
+                  <SelectTrigger className="h-16 rounded-[24px] bg-indigo-50/50 border-none px-8 font-black uppercase text-[10px] text-indigo-600 italic shadow-sm hover:bg-indigo-100 transition-all ring-offset-transparent focus:ring-0">
+                    <SelectValue placeholder="Select Threat" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
+                  <SelectContent className="rounded-[24px] border-none shadow-2xl p-2 bg-white">
                      {players.filter(p => match.participants.includes(p.id) && p.id !== strikerId && p.id !== nonStrikerId).map(p => (
-                       <SelectItem key={p.id} value={p.id} className="rounded-xl font-black text-[10px] uppercase py-3 italic">{p.name}</SelectItem>
+                       <SelectItem key={p.id} value={p.id} className="rounded-xl font-black text-[10px] uppercase py-4 italic transition-all">{p.name}</SelectItem>
                      ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="pt-8">
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-4">
+              <div className="pt-4">
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-4">
                   {[0, 1, 2, 3, 4, 6].map(r => (
                     <Button 
                       key={r}
                       className={cn(
-                        "h-20 rounded-[28px] font-black text-2xl italic shadow-xl transition-all active:scale-95",
-                        r === 4 ? "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-200" : 
-                        r === 6 ? "bg-amber-500 hover:bg-amber-400 shadow-amber-200" : 
-                        "bg-slate-900 hover:bg-slate-800 shadow-slate-200"
+                        "h-20 rounded-[32px] font-black text-3xl italic shadow-xl transition-all active:scale-90 group relative overflow-hidden",
+                        r === 4 ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200" : 
+                        r === 6 ? "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-200" : 
+                        "bg-slate-900 hover:bg-slate-800 text-white shadow-slate-200"
                       )}
-                      disabled={!strikerId || !bowlerId}
+                      disabled={!strikerId || !bowlerId || !canScore}
                       onClick={() => updateStats(r)}
                     >
-                      {r}
+                      <span className="relative z-10">{r}</span>
+                      {r >= 4 && <div className="absolute inset-0 bg-white/20 scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />}
                     </Button>
                   ))}
                   <Button 
                     variant="outline"
-                    className="h-20 rounded-[28px] border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:bg-emerald-50 hover:text-emerald-600"
+                    className="h-20 rounded-[32px] border-2 border-emerald-100 text-emerald-600 font-black text-[11px] uppercase tracking-widest hover:bg-emerald-50 transition-all active:scale-95"
+                    disabled={!canScore}
                     onClick={() => updateStats(1, false, 'wide')}
                   >
-                    WD
+                    WIDE
                   </Button>
                   <Button 
                     variant="outline"
-                    className="h-20 rounded-[28px] border-slate-200 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:bg-amber-50 hover:text-amber-600"
+                    className="h-20 rounded-[32px] border-2 border-amber-100 text-amber-600 font-black text-[11px] uppercase tracking-widest hover:bg-amber-50 transition-all active:scale-95"
+                    disabled={!canScore}
                     onClick={() => updateStats(1, false, 'noball')}
                   >
-                    NB
+                    NO BALL
                   </Button>
                   <Button 
-                    className="h-20 rounded-[28px] bg-red-600 hover:bg-red-500 shadow-xl shadow-red-200 text-white font-black text-[10px] uppercase tracking-widest"
+                    className="col-span-2 h-20 rounded-[32px] bg-red-600 hover:bg-red-700 shadow-2xl shadow-red-200 text-white font-black text-[12px] uppercase tracking-[0.2em] italic active:scale-95 transition-all"
                     onClick={() => updateStats(0, true)}
-                    disabled={!strikerId || !bowlerId}
+                    disabled={!strikerId || !bowlerId || !canScore}
                   >
-                    WICKET
+                    EXTRACT ASSET (WICKET)
                   </Button>
                 </div>
               </div>
            </div>
 
-           {/* Side History & Scorecard Preview */}
-           <div className="space-y-10">
-              <div className="bg-slate-50 rounded-[40px] p-8 border border-slate-100">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] mb-6 flex items-center gap-2 italic">
-                  <Clock size={14} className="text-slate-400" /> Recent Matrix
+           {/* Pulse History */}
+           <div className="space-y-10 lg:pl-10">
+              <div className="bg-white rounded-[48px] p-10 border border-slate-100 shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5 text-indigo-900">
+                    <ActivityIcon size={120} />
+                </div>
+                <h4 className="text-[11px] font-black uppercase tracking-[0.4em] mb-8 flex items-center gap-3 italic text-slate-900 relative z-10">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                  Telemetry Pulse
                 </h4>
-                <div className="flex flex-wrap gap-3">
+                <div className="grid grid-cols-4 gap-4 relative z-10">
                   {score.ballsHistory?.slice(-12).reverse().map((ball, i) => (
-                    <div 
+                    <motion.div 
                       key={i} 
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
                       className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black border italic",
-                        ball === 4 ? "bg-indigo-500 text-white border-indigo-500" :
-                        ball === 6 ? "bg-amber-500 text-white border-amber-500" :
-                        ball === -1 ? "bg-red-600 text-white border-red-600" :
-                        "bg-white text-slate-900 border-slate-200"
+                        "w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-black border-2 italic shadow-md",
+                        ball === 4 ? "bg-indigo-600 text-white border-indigo-400 shadow-indigo-100" :
+                        ball === 6 ? "bg-amber-500 text-white border-amber-300 shadow-amber-100" :
+                        ball === -1 ? "bg-red-600 text-white border-red-400 shadow-red-100" :
+                        "bg-white text-slate-900 border-slate-50"
                       )}
                     >
                       {ball === -1 ? 'W' : ball}
-                    </div>
-                  ))}
-                  {(!score.ballsHistory || score.ballsHistory.length === 0) && (
-                    <div className="py-10 text-center w-full text-slate-300 italic text-[10px] font-black uppercase tracking-widest">Awaiting Pulse...</div>
-                  )}
+                    </motion.div>
+                  )) || <div className="col-span-4 py-8 text-center text-slate-200 text-[10px] font-black uppercase tracking-widest italic">Awaiting Impact...</div>}
                 </div>
               </div>
 
               <div className="space-y-4">
-                 <h4 className="text-[10px] font-black uppercase tracking-[0.3em] ml-4 italic">Active Personnel</h4>
-                 {battingTeamKey && score[battingTeamKey].scorecard?.batting.filter((b: any) => b.status === 'playing').map((b: any) => (
-                   <div key={b.playerId} className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center justify-between shadow-sm">
-                      <div className="flex items-center gap-4">
-                         <div className="w-1.5 h-6 bg-indigo-500 rounded-full" />
-                         <div>
-                            <p className="text-[10px] font-black uppercase italic text-slate-900">{b.name} {strikerId === b.playerId ? '*' : ''}</p>
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{b.balls} Balls Faced</p>
-                         </div>
-                      </div>
-                      <div className="text-xl font-black italic text-slate-900">{b.runs}</div>
-                   </div>
-                 ))}
+                 <h4 className="text-[10px] font-black uppercase tracking-[0.3em] ml-8 italic text-slate-400 flex items-center gap-3">
+                    <Target size={14} /> FIELD STATUS
+                 </h4>
+                 <Button 
+                   variant="ghost"
+                   className="w-full h-20 rounded-[32px] bg-indigo-50 border-2 border-indigo-100 text-indigo-600 font-black uppercase tracking-widest text-[11px] hover:bg-indigo-100 transition-all italic flex items-center justify-center gap-3"
+                   onClick={() => onUpdate({ ...score, currentInnings: score.currentInnings === 1 ? 2 : 1 })}
+                 >
+                    Invert Tactical Orientation (Switch Innings)
+                 </Button>
               </div>
            </div>
         </div>
@@ -699,14 +749,15 @@ function CricketIngestor({ match, onUpdate, isSyncing, players, teams }: any) {
   );
 }
 
-function FootballIngestor({ match, onUpdate, isSyncing, players, teams }: any) {
+function FootballIngestor({ match, onUpdate, isSyncing, players, teams, canScore }: any) {
   const score = match.score as FootballScore;
+  const team1 = teams.find((t: any) => t.id === match.team1Id);
+  const team2 = teams.find((t: any) => t.id === match.team2Id);
   const [selectedPlayerId, setSelectedPlayerId] = React.useState<string>('');
 
   const updateGoals = (teamKey: 'team1' | 'team2', delta: number) => {
     const newScore = JSON.parse(JSON.stringify(score));
     newScore[teamKey].goals = Math.max(0, newScore[teamKey].goals + delta);
-    
     if (delta > 0 && selectedPlayerId) {
       if (!newScore[teamKey].scorers) newScore[teamKey].scorers = [];
       newScore[teamKey].scorers.push({ playerId: selectedPlayerId, minute: newScore.time || 0 });
@@ -716,8 +767,8 @@ function FootballIngestor({ match, onUpdate, isSyncing, players, teams }: any) {
 
   const addCard = (teamKey: 'team1' | 'team2', type: 'yellow' | 'red') => {
     if (!selectedPlayerId) {
-      toast.error("Assign personnel before disciplinary action.");
-      return;
+        toast.error("Tactical alert: Personnel must be identified before disciplinary action.");
+        return;
     }
     const newScore = JSON.parse(JSON.stringify(score));
     if (!newScore[teamKey].cards) newScore[teamKey].cards = [];
@@ -737,76 +788,115 @@ function FootballIngestor({ match, onUpdate, isSyncing, players, teams }: any) {
 
   return (
     <Card className="rounded-[64px] border-none shadow-2xl shadow-indigo-100 overflow-hidden bg-white">
-        <CardHeader className="bg-slate-900 p-16 text-white relative flex flex-col items-center gap-12 overflow-hidden">
-           <div className="absolute top-0 right-0 p-12 opacity-5">
+        {/* FIFA BROADCAST STYLE SCOREBOARD */}
+        <CardHeader className="bg-gradient-to-b from-slate-900 to-slate-950 p-16 text-white relative flex flex-col items-center gap-12 overflow-hidden border-b border-white/5">
+           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
+           <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
               <Calendar size={240} className="rotate-12" />
            </div>
            
-           <div className="flex flex-col md:flex-row items-center gap-16 relative z-10 w-full justify-between">
-              <div className="text-center space-y-6 flex-1">
-                 <div className="text-[120px] font-black tracking-tighter leading-none italic text-indigo-500">{score.team1.goals}</div>
-                 <h3 className="text-2xl font-black uppercase tracking-tighter italic">ALPHA FORCE</h3>
+           <div className="flex flex-col md:flex-row items-center gap-16 relative z-10 w-full justify-between max-w-5xl">
+              <div className="text-center space-y-4 flex-1 w-full order-2 md:order-1 transition-all group">
+                 <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 shadow-2xl overflow-hidden group-hover:scale-110 transition-transform">
+                    {team1?.logoURL ? <img src={team1.logoURL} className="w-full h-full object-cover" /> : <div className="text-3xl font-black italic">{team1?.name?.[0]}</div>}
+                 </div>
+                 <h3 className="text-xl md:text-3xl font-black uppercase tracking-tighter italic text-indigo-400 truncate max-w-[200px] mx-auto">{team1?.name || 'ALPHA FORCE'}</h3>
               </div>
               
-              <div className="flex flex-col items-center gap-4">
-                 <div className="h-24 w-px bg-white/10" />
-                 <div className="text-4xl font-black text-indigo-400 italic font-mono tracking-tighter">{score.time || 0}'</div>
-                 <div className="h-24 w-px bg-white/10" />
+              <div className="flex flex-col items-center gap-8 order-1 md:order-2">
+                 <div className="bg-indigo-600/20 backdrop-blur-xl border border-indigo-500/30 px-8 py-3 rounded-full flex items-center gap-4">
+                    <Clock size={18} className="text-indigo-400" />
+                    <span className="text-3xl md:text-5xl font-black text-white italic font-mono tracking-tighter leading-none">{score.time || 0}<span className="text-white/20 animate-pulse">:</span>00</span>
+                 </div>
+                 <div className="flex items-center gap-6">
+                    <motion.div 
+                        key={score.team1.goals}
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        className="text-8xl md:text-[140px] font-black italic text-white tracking-tighter leading-none"
+                    >
+                        {score.team1.goals}
+                    </motion.div>
+                    <div className="text-4xl md:text-6xl font-black text-white/10 italic leading-none">-</div>
+                    <motion.div 
+                        key={score.team2.goals}
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        className="text-8xl md:text-[140px] font-black italic text-white/20 tracking-tighter leading-none"
+                    >
+                        {score.team2.goals}
+                    </motion.div>
+                 </div>
               </div>
 
-              <div className="text-center space-y-6 flex-1">
-                 <div className="text-[120px] font-black tracking-tighter leading-none italic text-white/10">{score.team2.goals}</div>
-                 <h3 className="text-2xl font-black uppercase tracking-tighter italic text-white/40">GHOST UNIT</h3>
+              <div className="text-center space-y-4 flex-1 w-full order-3 transition-all group">
+                 <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 shadow-2xl overflow-hidden group-hover:scale-110 transition-transform">
+                    {team2?.logoURL ? <img src={team2.logoURL} className="w-full h-full object-cover" /> : <div className="text-3xl font-black italic text-white/20">{team2?.name?.[0]}</div>}
+                 </div>
+                 <h3 className="text-xl md:text-3xl font-black uppercase tracking-tighter italic text-white/40 truncate max-w-[200px] mx-auto">{team2?.name || 'GHOST UNIT'}</h3>
               </div>
            </div>
            
-           <div className="flex gap-4 relative z-10">
-              <Button size="icon" variant="ghost" className="h-12 w-12 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:bg-white/10" onClick={() => updateTime(-1)}><Minus size={18} /></Button>
-              <Button size="icon" variant="ghost" className="h-12 w-12 rounded-xl bg-indigo-500 text-white shadow-xl shadow-indigo-500/20" onClick={() => updateTime(1)}><Plus size={18} /></Button>
+           <div className="flex gap-4 relative z-10 mt-8 pt-8 border-t border-white/5 w-full justify-center">
+              <Button size="icon" variant="ghost" className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 text-white/40 hover:bg-red-500/20 hover:text-white transition-all shadow-xl" disabled={!canScore} onClick={() => updateTime(-1)}><Minus size={20} /></Button>
+              <Button size="icon" variant="ghost" className="h-14 w-14 rounded-2xl bg-indigo-600 text-white shadow-2xl shadow-indigo-600/40 hover:bg-indigo-500 transition-all font-black text-lg active:scale-90" disabled={!canScore} onClick={() => updateTime(1)}><Plus size={24} /></Button>
            </div>
         </CardHeader>
         
-        <CardContent className="p-16 space-y-16">
-           <div className="max-w-md mx-auto space-y-6">
-              <Label className="text-[10px] font-black uppercase tracking-[0.3em] ml-4 text-slate-400 italic">Active Tactical Agent</Label>
-              <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId}>
-                <SelectTrigger className="h-20 rounded-[32px] bg-slate-50 border-none shadow-inner px-10 font-black uppercase text-[12px] italic">
-                  <SelectValue placeholder="Identify Personnel..." />
+        <CardContent className="p-16 space-y-16 bg-slate-50/30">
+           <div className="max-w-2xl mx-auto space-y-8 bg-white p-10 rounded-[48px] shadow-2xl shadow-slate-200/50 border border-white relative overflow-hidden group">
+              <div className="absolute -right-20 -top-20 w-64 h-64 bg-indigo-50 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Label className="text-[11px] font-black uppercase tracking-[0.5em] ml-4 text-slate-400 italic block mb-2 relative z-10">TACTICAL ASSET IDENTIFICATION</Label>
+              <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId} disabled={!canScore}>
+                <SelectTrigger className="h-18 rounded-[28px] bg-slate-50/50 border-2 border-slate-100 px-10 font-black uppercase text-[11px] italic shadow-sm hover:bg-slate-100 transition-all ring-offset-transparent focus:ring-0 relative z-10 group/select">
+                  <SelectValue placeholder="Identify Personnel for Delta Operation" />
                 </SelectTrigger>
-                <SelectContent className="rounded-[32px] border-none shadow-2xl p-4">
-                  {participantPlayers.map(p => (
-                    <SelectItem key={p.id} value={p.id} className="rounded-2xl font-black uppercase italic py-4">{p.name}</SelectItem>
-                  ))}
+                <SelectContent className="rounded-[28px] border-none shadow-2xl p-2 bg-white scale-95 origin-top transition-all">
+                   {participantPlayers.map(p => (
+                     <SelectItem key={p.id} value={p.id} className="rounded-xl font-black text-[11px] uppercase py-4 px-6 italic transition-all hover:translate-x-1">{p.name}</SelectItem>
+                   ))}
                 </SelectContent>
               </Select>
            </div>
 
            <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
               <div className="space-y-12">
-                 <div className="text-center">
-                    <h4 className="text-[11px] font-black uppercase text-slate-900 tracking-[0.4em] italic mb-8">Alpha Force Ingestion</h4>
-                    <div className="flex justify-center gap-6">
-                       <Button variant="outline" className="h-20 w-20 rounded-[32px] border-slate-100 text-slate-300 hover:bg-slate-50 transition-all shadow-inner" onClick={() => updateGoals('team1', -1)}><Minus size={24} /></Button>
-                       <Button className="h-20 w-20 rounded-[32px] bg-indigo-500 text-white shadow-2xl shadow-indigo-500/20 hover:bg-slate-900 transition-all active:scale-90" onClick={() => updateGoals('team1', 1)}><Plus size={24} /></Button>
+                 <div className="text-center group">
+                    <h4 className="text-[12px] font-black uppercase text-slate-800 tracking-[0.4em] italic mb-10 flex items-center justify-center gap-3">
+                       <Target size={16} className="text-indigo-500" /> ALPHA COMMAND
+                    </h4>
+                    <div className="flex justify-center gap-8">
+                       <Button variant="outline" className="h-24 w-24 rounded-[40px] border-2 border-slate-100 text-slate-300 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all shadow-inner active:scale-95" disabled={!canScore} onClick={() => updateGoals('team1', -1)}><Minus size={32} /></Button>
+                       <Button className="h-24 w-24 rounded-[40px] bg-slate-900 text-white shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 transition-all active:scale-90 group-hover:shadow-indigo-500/20" disabled={!canScore} onClick={() => updateGoals('team1', 1)}><Plus size={32} /></Button>
                     </div>
                  </div>
-                 <div className="grid grid-cols-2 gap-4">
-                    <Button variant="outline" className="h-14 rounded-2xl border-amber-100 text-amber-500 font-black uppercase text-[9px] hover:bg-amber-50 italic" onClick={() => addCard('team1', 'yellow')}>Yellow Card</Button>
-                    <Button variant="outline" className="h-14 rounded-2xl border-red-100 text-red-500 font-black uppercase text-[9px] hover:bg-red-50 italic" onClick={() => addCard('team1', 'red')}>Red Card</Button>
+                 <div className="grid grid-cols-2 gap-6 p-2">
+                    <Button variant="outline" className="h-16 rounded-[24px] border-2 border-amber-100 bg-amber-50/30 text-amber-600 font-black uppercase text-[10px] tracking-widest hover:bg-amber-100 italic transition-all active:scale-95 shadow-sm" disabled={!canScore} onClick={() => addCard('team1', 'yellow')}>
+                       <div className="w-4 h-6 bg-amber-400 rounded-sm mr-3 shadow-md" /> Yellow Card
+                    </Button>
+                    <Button variant="outline" className="h-16 rounded-[24px] border-2 border-red-100 bg-red-50/30 text-red-600 font-black uppercase text-[10px] tracking-widest hover:bg-red-100 italic transition-all active:scale-95 shadow-sm" disabled={!canScore} onClick={() => addCard('team1', 'red')}>
+                       <div className="w-4 h-6 bg-red-600 rounded-sm mr-3 shadow-md" /> Red Card
+                    </Button>
                  </div>
               </div>
               
               <div className="space-y-12">
-                 <div className="text-center">
-                    <h4 className="text-[11px] font-black uppercase text-slate-900 tracking-[0.4em] italic mb-8">Ghost Unit Audit</h4>
-                    <div className="flex justify-center gap-6">
-                       <Button variant="outline" className="h-20 w-20 rounded-[32px] border-slate-100 text-slate-300 hover:bg-slate-50 transition-all shadow-inner" onClick={() => updateGoals('team2', -1)}><Minus size={24} /></Button>
-                       <Button className="h-20 w-20 rounded-[32px] bg-white border-2 border-slate-900 text-slate-900 shadow-2xl shadow-slate-100 hover:bg-slate-900 hover:text-white transition-all active:scale-90" onClick={() => updateGoals('team2', 1)}><Plus size={24} /></Button>
+                 <div className="text-center group">
+                    <h4 className="text-[12px] font-black uppercase text-slate-400 tracking-[0.4em] italic mb-10 flex items-center justify-center gap-3">
+                       GHOST PROTOCOL <ActivityIcon size={16} />
+                    </h4>
+                    <div className="flex justify-center gap-8">
+                       <Button variant="outline" className="h-24 w-24 rounded-[40px] border-2 border-slate-100 text-slate-300 hover:bg-slate-50 transition-all shadow-inner active:scale-95" disabled={!canScore} onClick={() => updateGoals('team2', -1)}><Minus size={32} /></Button>
+                       <Button className="h-24 w-24 rounded-[40px] bg-white border-2 border-slate-200 text-slate-400 font-black shadow-2xl shadow-slate-100 hover:bg-slate-900 hover:text-white transition-all active:scale-90" disabled={!canScore} onClick={() => updateGoals('team2', 1)}><Plus size={32} /></Button>
                     </div>
                  </div>
-                 <div className="grid grid-cols-2 gap-4">
-                    <Button variant="outline" className="h-14 rounded-2xl border-amber-100 text-amber-500 font-black uppercase text-[9px] hover:bg-amber-50 italic" onClick={() => addCard('team2', 'yellow')}>Yellow Card</Button>
-                    <Button variant="outline" className="h-14 rounded-2xl border-red-100 text-red-500 font-black uppercase text-[9px] hover:bg-red-50 italic" onClick={() => addCard('team2', 'red')}>Red Card</Button>
+                 <div className="grid grid-cols-2 gap-6 p-2">
+                    <Button variant="outline" className="h-16 rounded-[24px] border-2 border-slate-100 bg-slate-50/50 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:bg-amber-50 hover:text-amber-600 hover:border-amber-100 italic transition-all active:scale-95" disabled={!canScore} onClick={() => addCard('team2', 'yellow')}>
+                       <div className="w-4 h-6 bg-amber-400/30 rounded-sm mr-3" /> Yellow Card
+                    </Button>
+                    <Button variant="outline" className="h-16 rounded-[24px] border-2 border-slate-100 bg-slate-50/50 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:bg-red-50 hover:text-red-600 hover:border-red-100 italic transition-all active:scale-95" disabled={!canScore} onClick={() => addCard('team2', 'red')}>
+                       <div className="w-4 h-6 bg-red-600/30 rounded-sm mr-3" /> Red Card
+                    </Button>
                  </div>
               </div>
            </div>
@@ -815,7 +905,7 @@ function FootballIngestor({ match, onUpdate, isSyncing, players, teams }: any) {
   );
 }
 
-function BadmintonIngestor({ match, onUpdate, isSyncing, players }: any) {
+function BadmintonIngestor({ match, onUpdate, isSyncing, players, canScore }: any) {
   const score = match.score as BadmintonScore;
   const currentSet = score.currentSet || 0;
   const sets = score.sets || [{ player1: 0, player2: 0 }];
@@ -857,6 +947,7 @@ function BadmintonIngestor({ match, onUpdate, isSyncing, players }: any) {
                 <Button 
                     variant="ghost" 
                     className="h-14 w-14 rounded-2xl border-2 border-dashed border-slate-200 text-slate-300 hover:bg-slate-100 transition-all font-black"
+                    disabled={!canScore}
                     onClick={nextSet}
                 >
                     <Plus size={20} />
@@ -865,32 +956,32 @@ function BadmintonIngestor({ match, onUpdate, isSyncing, players }: any) {
            </div>
         </CardHeader>
         
-        <CardContent className="p-16">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-20">
-               <div className="text-center space-y-10 flex-1 group">
-                  <div className="text-[120px] font-black text-indigo-500 tracking-tighter leading-none italic transition-all group-hover:scale-110">{sets[currentSet].player1}</div>
+        <CardContent className="p-8 md:p-16">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-20">
+               <div className="text-center space-y-6 md:space-y-10 flex-1 group w-full">
+                  <div className="text-7xl md:text-[120px] font-black text-indigo-500 tracking-tighter leading-none italic transition-all group-hover:scale-110">{sets[currentSet].player1}</div>
                   <div className="space-y-4">
-                     <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest italic">ALPHA ASSET</p>
+                     <p className="text-[8px] md:text-[10px] font-black uppercase text-slate-400 tracking-widest italic">ALPHA ASSET</p>
                      <div className="flex justify-center gap-4">
-                        <Button variant="outline" className="h-16 w-16 rounded-[28px] border-slate-100 text-slate-300 hover:bg-slate-50 transition-all" onClick={() => updateScore('player1', -1)}><Minus size={24} /></Button>
-                        <Button className="h-16 w-16 rounded-[28px] bg-indigo-500 text-white shadow-xl shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-90" onClick={() => updateScore('player1', 1)}><Plus size={24} /></Button>
+                        <Button variant="outline" className="h-14 md:h-16 w-14 md:w-16 rounded-2xl md:rounded-[28px] border-slate-100 text-slate-300 hover:bg-slate-50 transition-all" disabled={!canScore} onClick={() => updateScore('player1', -1)}><Minus size={20} md:size={24} /></Button>
+                        <Button className="h-14 md:h-16 w-14 md:w-16 rounded-2xl md:rounded-[28px] bg-indigo-500 text-white shadow-xl shadow-indigo-500/20 hover:bg-indigo-600 transition-all active:scale-90" disabled={!canScore} onClick={() => updateScore('player1', 1)}><Plus size={20} md:size={24} /></Button>
                      </div>
                   </div>
                </div>
 
-               <div className="text-center flex flex-col items-center gap-6">
-                  <div className="w-px h-16 bg-slate-100" />
-                  <span className="text-3xl font-black text-slate-100 italic tracking-[0.4em]">VS</span>
-                  <div className="w-px h-16 bg-slate-100" />
+               <div className="text-center flex flex-row md:flex-col items-center gap-4 md:gap-6">
+                  <div className="w-12 md:w-px h-px md:h-16 bg-slate-100" />
+                  <span className="text-xl md:text-3xl font-black text-slate-100 italic tracking-[0.2em] md:tracking-[0.4em]">VS</span>
+                  <div className="w-12 md:w-px h-px md:h-16 bg-slate-100" />
                </div>
 
-               <div className="text-center space-y-10 flex-1 group">
-                  <div className="text-[120px] font-black text-slate-200 tracking-tighter leading-none italic transition-all group-hover:scale-110 group-hover:text-slate-900">{sets[currentSet].player2}</div>
+               <div className="text-center space-y-6 md:space-y-10 flex-1 group w-full">
+                  <div className="text-7xl md:text-[120px] font-black text-slate-200 tracking-tighter leading-none italic transition-all group-hover:scale-110 group-hover:text-slate-900">{sets[currentSet].player2}</div>
                   <div className="space-y-4">
-                     <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest italic">BETA ASSET</p>
+                     <p className="text-[8px] md:text-[10px] font-black uppercase text-slate-400 tracking-widest italic">BETA ASSET</p>
                      <div className="flex justify-center gap-4">
-                        <Button variant="outline" className="h-16 w-16 rounded-[28px] border-slate-100 text-slate-300 hover:bg-slate-50 transition-all" onClick={() => updateScore('player2', -1)}><Minus size={24} /></Button>
-                        <Button className="h-16 w-16 rounded-[28px] bg-white border-2 border-slate-900 text-slate-900 shadow-2xl shadow-slate-100 hover:bg-slate-900 hover:text-white transition-all active:scale-90" onClick={() => updateScore('player2', 1)}><Plus size={24} /></Button>
+                        <Button variant="outline" className="h-14 md:h-16 w-14 md:w-16 rounded-2xl md:rounded-[28px] border-slate-100 text-slate-300 hover:bg-slate-50 transition-all" disabled={!canScore} onClick={() => updateScore('player2', -1)}><Minus size={20} md:size={24} /></Button>
+                        <Button className="h-14 md:h-16 w-14 md:w-16 rounded-2xl md:rounded-[28px] bg-white border-2 border-slate-900 text-slate-900 shadow-2xl shadow-slate-100 hover:bg-slate-900 hover:text-white transition-all active:scale-90" disabled={!canScore} onClick={() => updateScore('player2', 1)}><Plus size={20} md:size={24} /></Button>
                      </div>
                   </div>
                </div>

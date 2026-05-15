@@ -15,8 +15,12 @@ import {
   Award,
   Clock,
   ExternalLink,
-  Star
+  Star,
+  QrCode,
+  MessageSquare,
+  Search
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   Card, 
   CardContent, 
@@ -24,6 +28,20 @@ import {
   CardTitle,
   CardDescription 
 } from '@/components/ui/card';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from '@/components/ui/dialog';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from '@/components/ui/button';
 import { 
   BarChart, 
@@ -376,7 +394,13 @@ function ManagementDashboard({ players, matches, teams }: { players: Player[], m
 
 function PlayerDashboard({ player, matches, allPlayers }: { player: Player, matches: Match[], allPlayers: Player[] }) {
   const navigate = useNavigate();
+  const [comparePlayerId, setComparePlayerId] = React.useState<string>('');
   
+  const comparePlayer = React.useMemo(() => 
+    allPlayers.find(p => p.id === comparePlayerId), 
+    [allPlayers, comparePlayerId]
+  );
+
   const personalStats = React.useMemo(() => {
     const stats: { label: string, value: any, icon: any, color: string, bg: string, academyAvg?: string }[] = [];
     
@@ -432,20 +456,58 @@ function PlayerDashboard({ player, matches, allPlayers }: { player: Player, matc
   }, [player.id]);
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-500">
+    <div className="space-y-6 md:space-y-10 animate-in fade-in duration-500">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-             <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">
-               Elite <span className="bg-indigo-500 text-white px-3 py-1 rounded-2xl skew-x-[-6deg] not-italic text-3xl">Portal</span>
+             <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase italic">
+               Elite <span className="bg-indigo-500 text-white px-3 py-1 rounded-2xl skew-x-[-6deg] not-italic text-2xl md:text-3xl">Portal</span>
              </h1>
-             <Badge className="bg-slate-100 text-slate-500 font-black border-none uppercase tracking-widest text-[9px] px-3">
+             <Badge className="bg-slate-100 text-slate-500 font-black border-none uppercase tracking-widest text-[9px] px-3 hidden sm:inline-flex">
                ID: {player.academyId || player.id.slice(-6).toUpperCase()}
              </Badge>
           </div>
-          <p className="text-slate-400 text-sm font-bold uppercase tracking-[0.2em] opacity-80">Personal Performance & Growth Intelligence</p>
+          <p className="text-slate-400 text-[10px] md:text-sm font-bold uppercase tracking-[0.2em] opacity-80">Personal Performance Intelligence</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-3 w-full md:w-auto">
+          <Dialog>
+            <DialogTrigger nativeButton={false} render={
+              <Button className="flex-1 md:flex-none bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-black uppercase text-[10px] tracking-widest h-14 px-6 md:px-8 rounded-2xl transition-all italic border border-indigo-100">
+                <QrCode size={16} className="mr-2" /> Pass
+              </Button>
+            } />
+            <DialogContent className="sm:max-w-xs bg-white rounded-[40px] p-10 border-none shadow-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-center text-xl font-black italic uppercase tracking-tighter mb-6">Execution QR Code</DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col items-center gap-8">
+                <div className="p-6 bg-white rounded-3xl border-4 border-slate-900 shadow-2xl">
+                   <QRCodeSVG 
+                     value={`${window.location.origin}/players/${player.id}`} 
+                     size={180}
+                     level="H"
+                     includeMargin={true}
+                   />
+                </div>
+                <div className="text-center space-y-2">
+                   <p className="text-lg font-black italic uppercase tracking-tight leading-none text-slate-900">{player.name}</p>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Academy ID: {player.academyId || player.id.slice(-6).toUpperCase()}</p>
+                </div>
+                <div className="w-full h-px bg-slate-100" />
+                <p className="text-[9px] font-bold text-slate-400 uppercase italic text-center leading-relaxed">
+                  Authentication protocol active. <br/>Scan for personnel verification.
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          <Button 
+            onClick={() => window.location.href = `tel:+8801700000000`}
+            className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-black uppercase text-[10px] tracking-widest h-14 px-8 rounded-2xl transition-all italic border border-emerald-100"
+          >
+            <MessageSquare size={16} className="mr-2" /> Dispatch SMS
+          </Button>
+
           <Button 
             onClick={() => navigate(`/players/${player.id}`)}
             className="bg-slate-900 text-white hover:bg-indigo-600 font-black uppercase text-[10px] tracking-widest h-14 px-10 rounded-2xl shadow-xl shadow-slate-900/10 transition-all active:scale-95 italic"
@@ -454,6 +516,59 @@ function PlayerDashboard({ player, matches, allPlayers }: { player: Player, matc
           </Button>
         </div>
       </header>
+
+      {/* Comparison Engine */}
+      <Card className="elite-card border-none shadow-2xl shadow-slate-200/50 p-8 bg-slate-900 text-white relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:rotate-12 transition-transform duration-1000">
+           <TrendingUp size={200} />
+        </div>
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+           <div className="space-y-2">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Tactical Comparison Module</h4>
+              <p className="text-2xl font-black italic uppercase tracking-tight">Benchmark against academy assets</p>
+           </div>
+           
+           <div className="relative col-span-1 md:col-span-2 flex flex-col md:flex-row gap-6 items-center">
+              <div className="relative w-full">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <Select value={comparePlayerId} onValueChange={setComparePlayerId}>
+                   <SelectTrigger className="w-full h-16 bg-white/10 border-white/10 rounded-2xl pl-14 pr-6 text-white font-black italic uppercase tracking-widest text-[10px]">
+                      <SelectValue placeholder="SELECT TARGET FOR COMPARISON" />
+                   </SelectTrigger>
+                   <SelectContent className="bg-slate-900 border-white/10 text-white rounded-2xl">
+                      {allPlayers.filter(p => p.id !== player.id).map(p => (
+                         <SelectItem key={p.id} value={p.id} className="font-black italic uppercase text-[10px] py-3 focus:bg-white/10 focus:text-white">
+                           {p.name} ({p.primarySport})
+                         </SelectItem>
+                      ))}
+                   </SelectContent>
+                </Select>
+              </div>
+
+              {comparePlayer && (
+                 <motion.div 
+                   initial={{ opacity: 0, x: 20 }}
+                   animate={{ opacity: 1, x: 0 }}
+                   className="flex items-center gap-6 p-4 bg-white/5 rounded-2xl border border-white/5 w-full md:w-auto min-w-[280px]"
+                 >
+                    <div className="w-12 h-12 rounded-xl bg-indigo-500 flex items-center justify-center font-black italic text-lg shadow-xl">
+                       {comparePlayer.name[0]}
+                    </div>
+                    <div className="flex-1">
+                       <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400">{comparePlayer.primarySport} Grade</p>
+                       <p className="text-sm font-black italic uppercase tracking-tight">{comparePlayer.name}</p>
+                    </div>
+                    <div className="text-right">
+                       <p className="text-lg font-black italic leading-none">
+                          {comparePlayer.primarySport === 'cricket' ? comparePlayer.stats.cricket.runs : comparePlayer.stats.football.goals}
+                       </p>
+                       <p className="text-[8px] font-black uppercase tracking-widest text-white/40">Total Score</p>
+                    </div>
+                 </motion.div>
+              )}
+           </div>
+        </div>
+      </Card>
 
       {/* Stats Comparison Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -637,20 +752,20 @@ function PublicDashboard({ players, matches }: { players: Player[], matches: Mat
   
   return (
     <div className="space-y-16 animate-in fade-in duration-700">
-      <section className="relative h-[500px] rounded-[64px] overflow-hidden flex items-center justify-center text-center p-12 shadow-2xl">
+      <section className="relative h-[400px] md:h-[500px] rounded-[32px] md:rounded-[64px] overflow-hidden flex items-center justify-center text-center p-6 md:p-12 shadow-2xl">
          <div className="absolute inset-0 bg-slate-900" />
          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
          
-         <div className="relative z-10 max-w-4xl space-y-10">
+         <div className="relative z-10 max-w-4xl space-y-6 md:space-y-10">
             <div className="flex justify-center">
-              <Badge className="bg-indigo-500 text-white font-black uppercase tracking-[0.4em] px-6 py-2 rounded-full text-[10px] shadow-2xl shadow-indigo-500/40 border-none">Unified Academy Portal</Badge>
+              <Badge className="bg-indigo-500 text-white font-black uppercase tracking-[0.4em] px-4 md:px-6 py-2 rounded-full text-[8px] md:text-[10px] shadow-2xl shadow-indigo-500/40 border-none">Unified Academy Portal</Badge>
             </div>
-            <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter uppercase italic leading-[0.85]">
+            <h1 className="text-4xl md:text-8xl font-black text-white tracking-tighter uppercase italic leading-[0.9] md:leading-[0.85]">
               Elite <span className="text-indigo-500">Academy</span> <br/>Tactical Feed
             </h1>
-            <p className="text-slate-400 text-lg font-bold uppercase tracking-widest max-w-2xl mx-auto italic opacity-80 leading-relaxed">
-              Real-time telemetry, athlete benchmarks, and strategic updates. <br/>Witness the future of regional sports excellence.
+            <p className="text-slate-400 text-sm md:text-lg font-bold uppercase tracking-widest max-w-2xl mx-auto italic opacity-80 leading-relaxed">
+              Real-time telemetry, athlete benchmarks, and strategic updates.
             </p>
          </div>
       </section>

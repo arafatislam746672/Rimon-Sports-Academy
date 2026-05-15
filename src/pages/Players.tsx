@@ -265,7 +265,7 @@ export default function Players() {
               {isManagement && (
                 <>
                   <Dialog open={isTeamDialogOpen} onOpenChange={setIsTeamDialogOpen}>
-                     <DialogTrigger render={<Button variant="outline" className="border-slate-200 text-slate-900 font-black uppercase tracking-[0.2em] text-[10px] h-20 px-12 rounded-[32px] hover:bg-slate-900 hover:text-white transition-all shadow-xl shadow-slate-200/20 active:scale-95 italic bg-white/50 backdrop-blur-sm group-hover:border-indigo-500/30" />}>
+                     <DialogTrigger nativeButton={false} render={<Button variant="outline" className="border-slate-200 text-slate-900 font-black uppercase tracking-[0.2em] text-[10px] h-20 px-12 rounded-[32px] hover:bg-slate-900 hover:text-white transition-all shadow-xl shadow-slate-200/20 active:scale-95 italic bg-white/50 backdrop-blur-sm group-hover:border-indigo-500/30" />}>
                         <Flag size={20} className="mr-4" />
                         Assemble Unit
                      </DialogTrigger>
@@ -383,7 +383,7 @@ export default function Players() {
                   </Dialog>
     
                   <Dialog open={isPlayerDialogOpen} onOpenChange={setIsPlayerDialogOpen}>
-                    <DialogTrigger render={<Button className="bg-slate-900 text-white border-none shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 font-black uppercase tracking-widest text-[10px] h-16 px-12 rounded-[28px] active:scale-95 transition-all italic" />}>
+                    <DialogTrigger nativeButton={false} render={<Button className="bg-slate-900 text-white border-none shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 font-black uppercase tracking-widest text-[10px] h-16 px-12 rounded-[28px] active:scale-95 transition-all italic" />}>
                       <UserPlus size={18} className="mr-3" /> Enroll Asset
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[500px] bg-white border-none rounded-[56px] p-0 overflow-hidden shadow-2xl">
@@ -475,11 +475,11 @@ export default function Players() {
         {/* Superior Navigation & Console Tier */}
         <div className="flex flex-col gap-12 w-full">
            <div className="flex justify-center flex-col items-center gap-8 bg-slate-900/5 backdrop-blur-md p-10 rounded-[48px] border border-slate-100 shadow-inner">
-             <TabsList className="bg-white/50 p-2 rounded-[32px] h-fit border border-white/60 shadow-xl w-fit">
-               <TabsTrigger value="players" className="gap-4 rounded-[26px] px-20 py-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-2xl text-[11px] font-black uppercase tracking-[0.3em] transition-all italic duration-500">
+             <TabsList className="bg-white/50 p-1.5 md:p-2 rounded-[24px] md:rounded-[32px] h-fit border border-white/60 shadow-xl w-full max-w-2xl mx-auto flex">
+               <TabsTrigger value="players" className="flex-1 gap-2 md:gap-4 rounded-[20px] md:rounded-[26px] px-4 md:px-20 py-4 md:py-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-2xl text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] transition-all italic duration-500">
                   Athletes
                </TabsTrigger>
-               <TabsTrigger value="teams" className="gap-4 rounded-[26px] px-20 py-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-2xl text-[11px] font-black uppercase tracking-[0.3em] transition-all italic duration-500">
+               <TabsTrigger value="teams" className="flex-1 gap-2 md:gap-4 rounded-[20px] md:rounded-[26px] px-4 md:px-20 py-4 md:py-6 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-2xl text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] transition-all italic duration-500">
                   Squadrons
                </TabsTrigger>
              </TabsList>
@@ -654,7 +654,7 @@ export default function Players() {
                             </div>
                          </div>
                          <DropdownMenu>
-                            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="text-slate-300 hover:text-slate-900 rounded-[24px] h-14 w-14 hover:bg-white transition-all shadow-sm border border-transparent hover:border-slate-100" />}>
+                            <DropdownMenuTrigger nativeButton={false} render={<Button variant="ghost" size="icon" className="text-slate-300 hover:text-slate-900 rounded-[24px] h-14 w-14 hover:bg-white transition-all shadow-sm border border-transparent hover:border-slate-100" />}>
                                <MoreVertical size={24} />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="p-3 rounded-[32px] border-none shadow-2xl font-black min-w-[200px]">

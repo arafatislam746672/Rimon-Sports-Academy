@@ -61,9 +61,12 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Tournaments() {
+  const { profile } = useAuth();
+  const isManagement = profile?.role === 'management' || profile?.isSuperAdmin;
   const [tournaments, setTournaments] = React.useState<Tournament[]>([]);
   const [teams, setTeams] = React.useState<Team[]>([]);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
@@ -171,14 +174,14 @@ export default function Tournaments() {
           </p>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="flex bg-slate-100 p-1 rounded-2xl">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+          <div className="flex bg-slate-100 p-1 rounded-2xl w-full sm:w-auto">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => setViewMode('split')}
               className={cn(
-                "rounded-xl h-10 px-4 text-[10px] font-black uppercase tracking-widest transition-all",
+                "flex-1 sm:flex-none rounded-xl h-10 px-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all",
                 viewMode === 'split' ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
               )}
             >
@@ -189,7 +192,7 @@ export default function Tournaments() {
               size="sm" 
               onClick={() => setViewMode('table')}
               className={cn(
-                "rounded-xl h-10 px-4 text-[10px] font-black uppercase tracking-widest transition-all",
+                "flex-1 sm:flex-none rounded-xl h-10 px-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all",
                 viewMode === 'table' ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
               )}
             >
@@ -197,131 +200,135 @@ export default function Tournaments() {
             </Button>
           </div>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger render={<Button className="bg-slate-900 text-white font-black h-16 px-10 rounded-[28px] uppercase text-[10px] tracking-widest shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 transition-all active:scale-95 italic" />}>
-            <Plus size={18} className="mr-3" />
-            Sanction New Operations
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[550px] bg-white border-none rounded-[48px] p-0 overflow-hidden shadow-2xl">
-            <div className="bg-slate-900 p-12 text-white relative">
-               <div className="absolute top-0 right-0 p-12 opacity-10">
-                  <Flag size={140} className="rotate-12" />
-               </div>
-               <div className="relative z-10 space-y-4">
-                  <Badge className="bg-indigo-500 text-white font-black uppercase tracking-widest text-[10px] px-4 py-1.5 rounded-full border-none shadow-lg shadow-indigo-500/20">
-                     Tactical Command
-                  </Badge>
-                  <h2 className="text-4xl font-black uppercase tracking-tighter italic leading-none">Operational Config</h2>
-                  <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em] leading-relaxed max-w-[300px]">
-                     Deploy new tournament instance and participating units.
-                  </p>
-               </div>
-            </div>
-            <form onSubmit={handleSaveTournament} className="p-12 space-y-10 max-h-[70vh] overflow-y-auto no-scrollbar">
-              <div className="space-y-8">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Mission Identifier</Label>
-                  <Input 
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="e.g. ACADEMY WINTER LEAGUE 2026"
-                    className="h-16 rounded-2xl bg-slate-50 border-slate-100 font-black text-sm uppercase italic px-6 shadow-inner focus:border-indigo-500 transition-all"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Operational Track</Label>
-                    <Select value={newSport} onValueChange={(val) => {
-                      setNewSport(val as Sport);
-                      setSelectedTeamIds([]);
-                    }}>
-                      <SelectTrigger className="h-16 rounded-2xl bg-slate-50 border-slate-100 font-black text-[10px] uppercase tracking-widest px-6 shadow-inner focus:border-indigo-500 transition-all">
-                        <SelectValue placeholder="Sport" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-none shadow-2xl p-2 font-black">
-                        <SelectItem value="cricket" className="text-[10px] uppercase py-3">Cricket</SelectItem>
-                        <SelectItem value="football" className="text-[10px] uppercase py-3">Football</SelectItem>
-                        <SelectItem value="badminton" className="text-[10px] uppercase py-3">Badminton</SelectItem>
-                      </SelectContent>
-                    </Select>
+          {isManagement && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger nativeButton={false} render={
+                <Button className="w-full sm:w-auto bg-slate-900 text-white font-black h-14 md:h-16 px-6 md:px-10 rounded-[20px] md:rounded-[28px] uppercase text-[9px] md:text-[10px] tracking-widest shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 transition-all active:scale-95 italic">
+                  <Plus size={16} className="mr-2 md:mr-3" />
+                  Sanction
+                </Button>
+              } />
+              <DialogContent className="w-[95vw] sm:max-w-[550px] bg-white border-none rounded-[32px] md:rounded-[48px] p-0 overflow-hidden shadow-2xl">
+                <div className="bg-slate-900 p-12 text-white relative">
+                  <div className="absolute top-0 right-0 p-12 opacity-10">
+                      <Flag size={140} className="rotate-12" />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Session Matrix</Label>
-                    <Select value={newFormat} onValueChange={(val) => setNewFormat(val as any)}>
-                      <SelectTrigger className="h-16 rounded-2xl bg-slate-50 border-slate-100 font-black text-[10px] uppercase tracking-widest px-6 shadow-inner focus:border-indigo-500 transition-all">
-                        <SelectValue placeholder="Format" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl border-none shadow-2xl p-2 font-black">
-                        <SelectItem value="league" className="text-[10px] uppercase py-3">League</SelectItem>
-                        <SelectItem value="knockout" className="text-[10px] uppercase py-3">Knockout</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="relative z-10 space-y-4">
+                      <Badge className="bg-indigo-500 text-white font-black uppercase tracking-widest text-[10px] px-4 py-1.5 rounded-full border-none shadow-lg shadow-indigo-500/20">
+                        Tactical Command
+                      </Badge>
+                      <h2 className="text-4xl font-black uppercase tracking-tighter italic leading-none">Operational Config</h2>
+                      <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em] leading-relaxed max-w-[300px]">
+                        Deploy new tournament instance and participating units.
+                      </p>
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Initialization Date</Label>
-                  <Input 
-                    type="date"
-                    value={newStartDate}
-                    onChange={(e) => setNewStartDate(e.target.value)}
-                    className="h-16 rounded-2xl bg-slate-50 border-slate-100 font-black text-xs px-6 shadow-inner focus:border-indigo-500 transition-all"
-                  />
-                </div>
-
-                {newSport && (
-                  <div className="space-y-4">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 flex justify-between">
-                       <span>Deployed Units ({teams.filter(t => t.sport === newSport).length})</span>
-                       <span className={cn(selectedTeamIds.length < 2 ? "text-amber-500" : "text-emerald-500")}>{selectedTeamIds.length} Selection Active</span>
-                    </Label>
-                    <div className="max-h-[200px] overflow-y-auto no-scrollbar border border-slate-100 rounded-[32px] p-4 bg-slate-50/50 space-y-2">
-                      {teams.filter(t => t.sport === newSport).map(t => (
-                        <div key={t.id} 
-                           className={cn(
-                             "flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer group",
-                             selectedTeamIds.includes(t.id) ? "bg-white shadow-xl border border-indigo-100" : "hover:bg-white/50"
-                           )}
-                           onClick={() => {
-                              if (selectedTeamIds.includes(t.id)) {
-                                setSelectedTeamIds(selectedTeamIds.filter(id => id !== t.id));
-                              } else {
-                                setSelectedTeamIds([...selectedTeamIds, t.id]);
-                              }
-                           }}>
-                          <div className={cn(
-                             "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                             selectedTeamIds.includes(t.id) ? "bg-indigo-500 border-indigo-500" : "border-slate-200"
-                          )}>
-                             <ShieldCheck size={14} className={cn("text-white transition-opacity", selectedTeamIds.includes(t.id) ? "opacity-100" : "opacity-0")} />
-                          </div>
-                          <span className="text-[11px] font-black text-slate-900 uppercase tracking-tight italic">{t.name}</span>
-                          <span className="ml-auto text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none">{t.playerIds.length} PERSONNEL</span>
-                        </div>
-                      ))}
-                      {teams.filter(t => t.sport === newSport).length === 0 && (
-                        <div className="text-center py-10">
-                            <Info size={32} className="mx-auto text-slate-200 mb-2" />
-                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">No operational units detected for this track</p>
-                        </div>
-                      )}
+                <form onSubmit={handleSaveTournament} className="p-12 space-y-10 max-h-[70vh] overflow-y-auto no-scrollbar">
+                  <div className="space-y-8">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Mission Identifier</Label>
+                      <Input 
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder="e.g. ACADEMY WINTER LEAGUE 2026"
+                        className="h-16 rounded-2xl bg-slate-50 border-slate-100 font-black text-sm uppercase italic px-6 shadow-inner focus:border-indigo-500 transition-all"
+                      />
                     </div>
-                  </div>
-                )}
-              </div>
+                    
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Operational Track</Label>
+                        <Select value={newSport} onValueChange={(val) => {
+                          setNewSport(val as Sport);
+                          setSelectedTeamIds([]);
+                        }}>
+                          <SelectTrigger className="h-16 rounded-2xl bg-slate-50 border-slate-100 font-black text-[10px] uppercase tracking-widest px-6 shadow-inner focus:border-indigo-500 transition-all">
+                            <SelectValue placeholder="Sport" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl border-none shadow-2xl p-2 font-black">
+                            <SelectItem value="cricket" className="text-[10px] uppercase py-3">Cricket</SelectItem>
+                            <SelectItem value="football" className="text-[10px] uppercase py-3">Football</SelectItem>
+                            <SelectItem value="badminton" className="text-[10px] uppercase py-3">Badminton</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Session Matrix</Label>
+                        <Select value={newFormat} onValueChange={(val) => setNewFormat(val as any)}>
+                          <SelectTrigger className="h-16 rounded-2xl bg-slate-50 border-slate-100 font-black text-[10px] uppercase tracking-widest px-6 shadow-inner focus:border-indigo-500 transition-all">
+                            <SelectValue placeholder="Format" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl border-none shadow-2xl p-2 font-black">
+                            <SelectItem value="league" className="text-[10px] uppercase py-3">League</SelectItem>
+                            <SelectItem value="knockout" className="text-[10px] uppercase py-3">Knockout</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
 
-              <DialogFooter className="sticky bottom-0 -mx-12 px-12 bg-white/80 backdrop-blur-md pb-12 pt-6 border-t border-slate-50">
-                 <div className="grid grid-cols-2 gap-4 w-full">
-                    <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-2xl h-14 font-black uppercase text-[10px] tracking-widest text-slate-400">Abort Mission</Button>
-                    <Button type="submit" disabled={isSaving} className="bg-slate-900 text-white font-black rounded-2xl h-14 uppercase text-[10px] tracking-widest shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 transition-all active:scale-95 italic">
-                      {isSaving ? 'Sanctioning...' : 'Sanction Operation'}
-                    </Button>
-                 </div>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Initialization Date</Label>
+                      <Input 
+                        type="date"
+                        value={newStartDate}
+                        onChange={(e) => setNewStartDate(e.target.value)}
+                        className="h-16 rounded-2xl bg-slate-50 border-slate-100 font-black text-xs px-6 shadow-inner focus:border-indigo-500 transition-all"
+                      />
+                    </div>
+
+                    {newSport && (
+                      <div className="space-y-4">
+                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 flex justify-between">
+                          <span>Deployed Units ({teams.filter(t => t.sport === newSport).length})</span>
+                          <span className={cn(selectedTeamIds.length < 2 ? "text-amber-500" : "text-emerald-500")}>{selectedTeamIds.length} Selection Active</span>
+                        </Label>
+                        <div className="max-h-[200px] overflow-y-auto no-scrollbar border border-slate-100 rounded-[32px] p-4 bg-slate-50/50 space-y-2">
+                          {teams.filter(t => t.sport === newSport).map(t => (
+                            <div key={t.id} 
+                              className={cn(
+                                "flex items-center gap-4 p-4 rounded-2xl transition-all cursor-pointer group",
+                                selectedTeamIds.includes(t.id) ? "bg-white shadow-xl border border-indigo-100" : "hover:bg-white/50"
+                              )}
+                              onClick={() => {
+                                  if (selectedTeamIds.includes(t.id)) {
+                                    setSelectedTeamIds(selectedTeamIds.filter(id => id !== t.id));
+                                  } else {
+                                    setSelectedTeamIds([...selectedTeamIds, t.id]);
+                                  }
+                              }}>
+                              <div className={cn(
+                                "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
+                                selectedTeamIds.includes(t.id) ? "bg-indigo-500 border-indigo-500" : "border-slate-200"
+                              )}>
+                                <ShieldCheck size={14} className={cn("text-white transition-opacity", selectedTeamIds.includes(t.id) ? "opacity-100" : "opacity-0")} />
+                              </div>
+                              <span className="text-[11px] font-black text-slate-900 uppercase tracking-tight italic">{t.name}</span>
+                              <span className="ml-auto text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none">{t.playerIds.length} PERSONNEL</span>
+                            </div>
+                          ))}
+                          {teams.filter(t => t.sport === newSport).length === 0 && (
+                            <div className="text-center py-10">
+                                <Info size={32} className="mx-auto text-slate-200 mb-2" />
+                                <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">No operational units detected for this track</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <DialogFooter className="sticky bottom-0 -mx-12 px-12 bg-white/80 backdrop-blur-md pb-12 pt-6 border-t border-slate-50">
+                    <div className="grid grid-cols-2 gap-4 w-full">
+                        <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-2xl h-14 font-black uppercase text-[10px] tracking-widest text-slate-400">Abort Mission</Button>
+                        <Button type="submit" disabled={isSaving} className="bg-slate-900 text-white font-black rounded-2xl h-14 uppercase text-[10px] tracking-widest shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 transition-all active:scale-95 italic">
+                          {isSaving ? 'Sanctioning...' : 'Sanction Operation'}
+                        </Button>
+                    </div>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
       </div>
     </div>
 
@@ -342,7 +349,7 @@ export default function Tournaments() {
               />
             </div>
           </div>
-          <CardContent className="p-0">
+          <CardContent className="p-0 overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-b border-slate-50">
@@ -507,34 +514,34 @@ export default function Tournaments() {
               transition={{ duration: 0.5 }}
             >
               <Card className="rounded-[64px] border-none shadow-2xl shadow-slate-200/50 overflow-hidden bg-white min-h-[700px] flex flex-col">
-                <CardHeader className="bg-slate-900 p-12 text-white border-b border-white/10 relative">
+                <CardHeader className="bg-slate-900 p-8 md:p-12 text-white border-b border-white/10 relative">
                    <div className="absolute top-0 right-0 p-12 opacity-5">
                       <Trophy size={160} />
                    </div>
-                   <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-12">
+                   <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-8 md:gap-12">
                       <div className="space-y-4">
-                         <div className="flex items-center gap-4">
-                            <Badge className="bg-indigo-500 text-white border-none font-black text-[9px] uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg shadow-indigo-500/20">
+                         <div className="flex flex-wrap items-center gap-2 md:gap-4">
+                            <Badge className="bg-indigo-500 text-white border-none font-black text-[8px] md:text-[9px] uppercase tracking-widest px-3 md:px-4 py-1 md:py-1.5 rounded-full shadow-lg shadow-indigo-500/20">
                                {(selectedTournament.sport || 'cricket').toUpperCase()} SECTOR
                             </Badge>
-                            <Badge variant="outline" className="bg-white/5 text-white/40 border-white/10 font-black text-[9px] uppercase tracking-widest px-4 py-1.5 rounded-full">
+                            <Badge variant="outline" className="bg-white/5 text-white/40 border-white/10 font-black text-[8px] md:text-[9px] uppercase tracking-widest px-3 md:px-4 py-1 md:py-1.5 rounded-full">
                                {(selectedTournament.format || 'league').toUpperCase()} MATRIX
                             </Badge>
                          </div>
-                         <h2 className="text-5xl font-black tracking-tighter uppercase italic leading-none">{selectedTournament.name}</h2>
-                         <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] flex items-center gap-3">
-                            <Calendar size={14} className="text-indigo-400" /> Operational Since {new Date(selectedTournament.startDate).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+                         <h2 className="text-3xl md:text-5xl font-black tracking-tighter uppercase italic leading-none">{selectedTournament.name}</h2>
+                         <p className="text-[8px] md:text-[10px] font-black text-white/30 uppercase tracking-[0.4em] flex items-center gap-2 md:gap-3">
+                            <Calendar size={12} className="text-indigo-400" /> Operational Since {new Date(selectedTournament.startDate).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
                          </p>
                       </div>
                       
-                      <div className="flex gap-4">
-                        <div className="text-center bg-white/5 border border-white/5 rounded-3xl p-6 min-w-[120px]">
-                           <p className="text-3xl font-black italic whitespace-nowrap leading-none mb-2">{selectedTournament.participants.length}</p>
-                           <p className="text-[8px] font-black text-white/30 uppercase tracking-widest">Active Units</p>
+                      <div className="flex gap-4 w-full md:w-auto">
+                        <div className="flex-1 text-center bg-white/5 border border-white/5 rounded-2xl md:rounded-3xl p-4 md:p-6 md:min-w-[120px]">
+                           <p className="text-2xl md:text-3xl font-black italic whitespace-nowrap leading-none mb-2">{selectedTournament.participants.length}</p>
+                           <p className="text-[7px] md:text-[8px] font-black text-white/30 uppercase tracking-widest">Units</p>
                         </div>
-                        <div className="text-center bg-white/5 border border-white/5 rounded-3xl p-6 min-w-[120px]">
-                           <p className="text-3xl font-black italic whitespace-nowrap leading-none mb-2">{selectedTournament.matchIds.length}</p>
-                           <p className="text-[8px] font-black text-white/30 uppercase tracking-widest">Logged Events</p>
+                        <div className="flex-1 text-center bg-white/5 border border-white/5 rounded-2xl md:rounded-3xl p-4 md:p-6 md:min-w-[120px]">
+                           <p className="text-2xl md:text-3xl font-black italic whitespace-nowrap leading-none mb-2">{selectedTournament.matchIds.length}</p>
+                           <p className="text-[7px] md:text-[8px] font-black text-white/30 uppercase tracking-widest">Events</p>
                         </div>
                       </div>
                    </div>
@@ -542,27 +549,27 @@ export default function Tournaments() {
                 
                 <CardContent className="p-0 flex-1 flex flex-col">
                   <Tabs defaultValue="standings" className="w-full flex-1 flex flex-col">
-                    <div className="px-12 pt-10 pb-6 bg-slate-50/50 border-b border-slate-50">
-                      <TabsList className="bg-slate-200/50 h-16 rounded-[24px] p-1.5 w-fit flex gap-2">
-                        <TabsTrigger value="standings" className="px-10 rounded-[18px] font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg transition-all italic h-full"> 
-                           Operational Matrix
+                    <div className="px-4 md:px-12 pt-6 md:pt-10 pb-4 md:pb-6 bg-slate-50/50 border-b border-slate-50">
+                      <TabsList className="bg-slate-200/50 h-12 md:h-16 rounded-[16px] md:rounded-[24px] p-1 w-full sm:w-fit flex gap-1 md:gap-2">
+                        <TabsTrigger value="standings" className="flex-1 px-4 md:px-10 rounded-[12px] md:rounded-[18px] font-black uppercase text-[8px] md:text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg transition-all italic h-full"> 
+                           Matrix
                         </TabsTrigger>
-                        <TabsTrigger value="fixtures" className="px-10 rounded-[18px] font-black uppercase text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg transition-all italic h-full"> 
-                           Mission Logs
+                        <TabsTrigger value="fixtures" className="flex-1 px-4 md:px-10 rounded-[12px] md:rounded-[18px] font-black uppercase text-[8px] md:text-[10px] tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg transition-all italic h-full"> 
+                           Logs
                         </TabsTrigger>
                       </TabsList>
                     </div>
 
-                    <TabsContent value="standings" className="mt-0 flex-1 outline-none animate-in fade-in slide-in-from-bottom-5 duration-500">
+                    <TabsContent value="standings" className="mt-0 flex-1 outline-none animate-in fade-in slide-in-from-bottom-5 duration-500 overflow-x-auto">
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-white hover:bg-transparent border-b border-slate-50">
-                            <TableHead className="w-[100px] text-[9px] font-black text-slate-400 uppercase tracking-widest pl-12 h-16">Quantum Rank</TableHead>
-                            <TableHead className="text-[9px] font-black text-slate-400 uppercase tracking-widest h-16">Tactical Unit</TableHead>
-                            <TableHead className="text-center text-[9px] font-black text-slate-400 uppercase tracking-widest h-16">Deployments</TableHead>
-                            <TableHead className="text-center text-[9px] font-black text-slate-400 uppercase tracking-widest h-16">Victories</TableHead>
-                            <TableHead className="text-center text-[9px] font-black text-slate-400 uppercase tracking-widest h-16">Defeats</TableHead>
-                            <TableHead className="text-right text-[9px] font-black text-indigo-500 uppercase tracking-widest pr-12 h-16">Points Accumulation</TableHead>
+                            <TableHead className="w-[100px] text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest px-4 md:pl-12 h-12 md:h-16">Rank</TableHead>
+                            <TableHead className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest h-12 md:h-16">Unit</TableHead>
+                            <TableHead className="text-center text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest h-12 md:h-16">DPL</TableHead>
+                            <TableHead className="text-center text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest h-12 md:h-16">VIC</TableHead>
+                            <TableHead className="hidden sm:table-cell text-center text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest h-12 md:h-16">DEF</TableHead>
+                            <TableHead className="text-right text-[8px] md:text-[9px] font-black text-indigo-500 uppercase tracking-widest px-4 md:pr-12 h-12 md:h-16">Points</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -570,9 +577,9 @@ export default function Tournaments() {
                             const team = teams.find(tm => tm.id === teamId);
                             return (
                               <TableRow key={teamId} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-all group">
-                                <TableCell className="pl-12 py-8">
+                                <TableCell className="px-4 md:pl-12 py-6 md:py-8">
                                    <div className={cn(
-                                     "w-10 h-10 rounded-2xl flex items-center justify-center font-black italic",
+                                     "w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl flex items-center justify-center font-black italic text-xs md:text-base",
                                      i === 0 ? "bg-amber-100 text-amber-600 shadow-lg shadow-amber-500/10" : 
                                      i === 1 ? "bg-slate-100 text-slate-500" :
                                      "bg-slate-50 text-slate-300"
@@ -581,26 +588,26 @@ export default function Tournaments() {
                                    </div>
                                 </TableCell>
                                 <TableCell>
-                                   <div className="flex items-center gap-5">
-                                      <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center overflow-hidden border-2 border-white shadow-xl">
+                                   <div className="flex items-center gap-3 md:gap-5">
+                                      <div className="w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-900 flex items-center justify-center overflow-hidden border-2 border-white shadow-xl">
                                          {team?.logoURL ? (
                                             <img src={team.logoURL} className="w-full h-full object-cover" />
                                          ) : (
-                                            <Flag size={20} className="text-white opacity-20" />
+                                            <Flag size={14} className="text-white opacity-20" />
                                          )}
                                       </div>
                                       <div>
-                                         <p className="text-base font-black text-slate-900 tracking-tight uppercase italic mb-1 group-hover:translate-x-1 transition-transform">{team?.name || 'Inert Sector'}</p>
-                                         <Badge className="bg-slate-50 text-slate-400 text-[8px] font-black border-none uppercase tracking-widest">TACTICAL SQUAD</Badge>
+                                         <p className="text-sm md:text-base font-black text-slate-900 tracking-tight uppercase italic mb-0.5 md:mb-1 group-hover:translate-x-1 transition-transform truncate max-w-[100px] md:max-w-none">{team?.name || 'Inert'}</p>
+                                         <Badge className="bg-slate-50 text-slate-400 text-[6px] md:text-[8px] font-black border-none uppercase tracking-widest ring-0">TACTICAL</Badge>
                                       </div>
                                    </div>
                                 </TableCell>
-                                <TableCell className="text-center font-black text-slate-900 italic">0</TableCell>
-                                <TableCell className="text-center font-black text-slate-900 italic">0</TableCell>
-                                <TableCell className="text-center font-black text-slate-400 italic">0</TableCell>
-                                <TableCell className="text-right pr-12">
-                                   <span className="text-3xl font-black text-indigo-600 tracking-tighter italic">0</span>
-                                   <span className="text-[10px] font-black text-slate-300 ml-2 italic tracking-widest">PTS</span>
+                                <TableCell className="text-center font-black text-slate-900 italic text-xs md:text-base">0</TableCell>
+                                <TableCell className="text-center font-black text-slate-900 italic text-xs md:text-base">0</TableCell>
+                                <TableCell className="hidden sm:table-cell text-center font-black text-slate-400 italic text-xs md:text-base">0</TableCell>
+                                <TableCell className="text-right px-4 md:pr-12">
+                                   <span className="text-xl md:text-3xl font-black text-indigo-600 tracking-tighter italic">0</span>
+                                   <span className="text-[8px] md:text-[10px] font-black text-slate-300 ml-1 md:ml-2 italic tracking-widest">PTS</span>
                                 </TableCell>
                               </TableRow>
                             );
@@ -633,9 +640,11 @@ export default function Tournaments() {
                             <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter italic">Event Log Generation Restricted</h3>
                             <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">Fixtures will be auto-generated by the command unit once the operation season is initialized.</p>
                          </div>
-                         <Button className="bg-slate-900 text-white font-black h-16 px-12 rounded-[28px] uppercase tracking-[0.2em] text-[10px] italic shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 active:scale-95 transition-all">
-                            Initialize Generation Protocol
-                         </Button>
+                         {isManagement && (
+                           <Button className="bg-slate-900 text-white font-black h-16 px-12 rounded-[28px] uppercase tracking-[0.2em] text-[10px] italic shadow-2xl shadow-slate-900/20 hover:bg-indigo-600 active:scale-95 transition-all">
+                              Initialize Generation Protocol
+                           </Button>
+                         )}
                       </div>
                     </TabsContent>
                   </Tabs>

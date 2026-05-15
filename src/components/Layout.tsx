@@ -62,7 +62,8 @@ const navItems: NavItem[] = [
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(window.innerWidth > 1024);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [authModalConfig, setAuthModalConfig] = React.useState<{ isOpen: boolean; role: UserRole }>({
     isOpen: false,
     role: 'player'
@@ -102,17 +103,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       // Super Admin sees everything
       if (isSuperAdmin) return true;
 
-      // Check if it's explicitly for Super Admin
+      // Check if it is explicitly for Super Admin
       if (item.superAdmin) return false;
 
-      // Staff with Full Control see everything except superAdmin specific items
-      if (profile?.role === 'management' && permissions.fullControl) return true;
+      // Management see their permitted items
+      if (profile?.role === 'management') {
+        if (permissions.fullControl) return true;
+        if (item.permission && !(permissions as any)[item.permission]) return false;
+        return true;
+      }
 
-      // Check specific permissions
-      if (item.permission && !(permissions as any)[item.permission]) return false;
-
-      // Fallback to role-based check if no specific permission defined
-      if (item.role && profile?.role !== item.role) return false;
+      // Players see most items but not Approvals or superAdmin items
+      if (profile?.role === 'player') {
+        // Approvals is strictly for management/admins
+        if (item.permission === 'manageProfiles') return false;
+        // Navigation items we want to HIDE from players? 
+        // Maybe 'Pipeline' is too internal? Or 'Attendance' management?
+        // User said "tournament, score bord soho sokol data dekhte parbe"
+        return true;
+      }
 
       return true;
     });
@@ -147,11 +156,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans overflow-hidden">
-      {/* Sidebar */}
+    <div className="min-h-screen bg-slate-50 flex font-sans overflow-hidden relative">
+      {/* Sidebar - Hidden on mobile, shown as drawer if needed or completely hidden in favor of bottom nav */}
       <aside 
         className={cn(
-          "bg-slate-900 text-white h-screen sticky top-0 transition-all duration-300 z-50 flex flex-col py-8 shadow-2xl",
+          "bg-slate-900 text-white h-screen sticky top-0 transition-all duration-300 z-50 lg:flex flex-col py-8 shadow-2xl hidden",
           isSidebarOpen ? "w-[260px]" : "w-20"
         )}
       >
@@ -346,19 +355,38 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         style={{ scrollbarGutter: 'stable' }}
       >
         {/* Top Header Blur Effect */}
-        <div className="sticky top-0 left-0 right-0 h-16 bg-slate-50/80 backdrop-blur-md z-30 border-b border-slate-200 flex items-center px-10">
-          <div className="flex-1"></div>
+        <div className="sticky top-0 left-0 right-0 h-16 bg-slate-50/80 backdrop-blur-md z-30 border-b border-slate-200 flex items-center px-6 lg:px-10">
+          <div className="flex-1 flex items-center gap-4 lg:hidden">
+             <h1 className="text-lg font-black tracking-tight leading-none">
+                RIMON<span className="text-indigo-400">.</span>
+             </h1>
+          </div>
+          <div className="flex-1 hidden lg:block"></div>
           <div className="flex items-center gap-4">
              <div className="flex flex-col items-end">
                 <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-none">Status</span>
                 <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-500 uppercase">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live System
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live
                 </span>
              </div>
+             {user && (
+               <div className="lg:hidden">
+                 <DropdownMenu>
+                  <DropdownMenuTrigger nativeButton={false} render={<button className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-[10px] font-black text-white cursor-pointer shadow-lg overflow-hidden border border-indigo-200" />}>
+                     {user.photoURL ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" /> : user.displayName?.[0]}
+                  </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 bg-white">
+                       <DropdownMenuItem render={<Link to="/settings" className="w-full">Settings</Link>} className="rounded-xl py-3" />
+                       <DropdownMenuSeparator />
+                       <DropdownMenuItem onClick={logout} className="rounded-xl py-3 text-red-600 font-bold">Logout</DropdownMenuItem>
+                    </DropdownMenuContent>
+                 </DropdownMenu>
+               </div>
+             )}
           </div>
         </div>
 
-        <div className="p-10 pb-20 w-full max-w-[1600px] mx-auto">
+        <div className="p-4 lg:p-10 pb-32 lg:pb-20 w-full max-w-[1600px] mx-auto">
           {renderRestrictedBanner()}
           <AnimatePresence mode="wait">
             <motion.div
@@ -376,6 +404,54 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg border-t border-slate-100 flex items-center justify-around px-2 py-4 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
+        {currentNavItems.slice(0, 4).map((item) => {
+          const isActive = location.pathname === item.href;
+          return (
+            <Link 
+              key={item.href} 
+              to={item.href}
+              className={cn(
+                "flex flex-col items-center gap-1.5 px-3 py-1 transition-all rounded-xl",
+                isActive ? "text-indigo-600 scale-110" : "text-slate-400"
+              )}
+            >
+              <item.icon size={22} className={cn(isActive && "fill-indigo-600/10")} />
+              <span className="text-[9px] font-black uppercase tracking-widest">{item.name}</span>
+            </Link>
+          );
+        })}
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger nativeButton={false} render={<button className="flex flex-col items-center gap-1.5 px-3 py-1 text-slate-400" />}>
+             <Menu size={22} />
+             <span className="text-[9px] font-black uppercase tracking-widest">More</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="top" className="w-[85vw] mx-auto mb-6 bg-white border-none shadow-2xl rounded-[32px] p-4 flex flex-wrap gap-2">
+            {currentNavItems.slice(4).map((item) => (
+              <DropdownMenuItem 
+                key={item.href} 
+                render={<Link to={item.href} className="w-full flex items-center gap-3" />}
+                className="w-full py-4 px-5 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-3 hover:bg-indigo-50 focus:bg-indigo-50"
+              >
+                <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-indigo-50">
+                  <item.icon size={16} />
+                </div>
+                {item.name}
+              </DropdownMenuItem>
+            ))}
+            {!user && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => openAuth('player')} className="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest bg-slate-900 text-white mt-2">Athlete Login</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openAuth('management')} className="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-slate-200 mt-2">Staff Login</DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <AuthModal 
         isOpen={authModalConfig.isOpen}

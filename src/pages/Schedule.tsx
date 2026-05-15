@@ -47,9 +47,12 @@ const mockSchedule = [
   { id: 3, title: 'Badminton Drills', time: '06:00 PM - 07:30 PM', location: 'Indoor Court', type: 'Training', sport: 'Badminton' },
 ];
 
+import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 
 export default function Schedule() {
+  const { profile } = useAuth();
+  const isManagement = profile?.role === 'management' || profile?.isSuperAdmin;
   const [matches, setMatches] = React.useState<Match[]>([]);
   const [players, setPlayers] = React.useState<Player[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -132,91 +135,93 @@ export default function Schedule() {
             <CalendarIcon size={14} className="text-indigo-500" /> Chronological Pulse
           </p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger render={<Button className="bg-slate-900 text-white h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-slate-900/10 hover:bg-indigo-600 transition-all active:scale-95 italic" />}>
-            <Plus size={20} className="mr-3" /> Initialize Mission
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px] bg-white border-none rounded-[48px] p-0 overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.25)]">
-            <div className="bg-slate-900 p-10 text-white relative">
-               <div className="absolute top-0 right-0 p-8 opacity-5">
-                  <Zap size={100} className="rotate-12" />
-               </div>
-               <h3 className="text-2xl font-black uppercase italic tracking-tighter leading-none mb-2">Initialize Mission</h3>
-               <p className="text-[9px] font-black uppercase text-indigo-400 tracking-[0.3em]">Protocol Alpha: New Match Entry</p>
-            </div>
-            
-            <form onSubmit={handleAddMatch} className="p-10 space-y-6">
-               <div className="space-y-4">
-                  <Label className="text-[10px] font-black uppercase tracking-widest ml-4">Mission Designation</Label>
-                  <Input 
-                    required
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    placeholder="e.g. CHAMPIONS TROPHY SEMI-FINAL" 
-                    className="h-14 rounded-2xl bg-slate-50 border-none font-black text-[10px] uppercase px-6 italic"
-                  />
-               </div>
+        {isManagement && (
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger nativeButton={false} render={<Button className="bg-slate-900 text-white h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-slate-900/10 hover:bg-indigo-600 transition-all active:scale-95 italic" />}>
+              <Plus size={20} className="mr-3" /> Initialize Mission
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px] bg-white border-none rounded-[48px] p-0 overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.25)]">
+              <div className="bg-slate-900 p-10 text-white relative">
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                    <Zap size={100} className="rotate-12" />
+                </div>
+                <h3 className="text-2xl font-black uppercase italic tracking-tighter leading-none mb-2">Initialize Mission</h3>
+                <p className="text-[9px] font-black uppercase text-indigo-400 tracking-[0.3em]">Protocol Alpha: New Match Entry</p>
+              </div>
+              
+              <form onSubmit={handleAddMatch} className="p-10 space-y-6">
+                <div className="space-y-4">
+                    <Label className="text-[10px] font-black uppercase tracking-widest ml-4">Mission Designation</Label>
+                    <Input 
+                      required
+                      value={formData.title}
+                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      placeholder="e.g. CHAMPIONS TROPHY SEMI-FINAL" 
+                      className="h-14 rounded-2xl bg-slate-50 border-none font-black text-[10px] uppercase px-6 italic"
+                    />
+                </div>
 
-               <div className="grid grid-cols-2 gap-6">
-                 <div className="space-y-4">
-                   <Label className="text-[10px] font-black uppercase tracking-widest ml-4">Asset Track</Label>
-                   <Select value={formData.sport} onValueChange={(v: any) => setFormData({...formData, sport: v})}>
-                     <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-none font-black text-[10px] uppercase px-6 italic">
-                       <SelectValue />
-                     </SelectTrigger>
-                     <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                       <SelectItem value="cricket" className="font-black text-[9px] uppercase italic">Cricket Core</SelectItem>
-                       <SelectItem value="football" className="font-black text-[9px] uppercase italic">Football Matrix</SelectItem>
-                       <SelectItem value="badminton" className="font-black text-[9px] uppercase italic">Badminton Node</SelectItem>
-                     </SelectContent>
-                   </Select>
-                 </div>
-                 <div className="space-y-4">
-                   <Label className="text-[10px] font-black uppercase tracking-widest ml-4">Deployment Date</Label>
-                   <Input 
-                    type="date"
-                    required
-                    value={formData.date}
-                    onChange={(e) => setFormData({...formData, date: e.target.value})}
-                    className="h-14 rounded-2xl bg-slate-50 border-none font-black text-[10px] uppercase px-6 italic"
-                   />
-                 </div>
-               </div>
-
-               <div className="space-y-4">
-                  <Label className="text-[10px] font-black uppercase tracking-widest ml-4">Personnel Assignment</Label>
-                  <div className="max-h-[150px] overflow-y-auto p-4 rounded-2xl bg-slate-50 space-y-2 no-scrollbar border-4 border-white">
-                    {players.map(player => (
-                      <div 
-                        key={player.id} 
-                        className={cn(
-                          "flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all",
-                          formData.participants.includes(player.id) ? "bg-indigo-500 text-white" : "bg-white hover:bg-slate-100"
-                        )}
-                        onClick={() => {
-                          const newParticipants = formData.participants.includes(player.id)
-                            ? formData.participants.filter(id => id !== player.id)
-                            : [...formData.participants, player.id];
-                          setFormData({...formData, participants: newParticipants});
-                        }}
-                      >
-                        <span className="text-[9px] font-black uppercase italic">{player.name}</span>
-                        {formData.participants.includes(player.id) && <Check size={12} />}
-                      </div>
-                    ))}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <Label className="text-[10px] font-black uppercase tracking-widest ml-4">Asset Track</Label>
+                    <Select value={formData.sport} onValueChange={(v: any) => setFormData({...formData, sport: v})}>
+                      <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-none font-black text-[10px] uppercase px-6 italic">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
+                        <SelectItem value="cricket" className="font-black text-[9px] uppercase italic">Cricket Core</SelectItem>
+                        <SelectItem value="football" className="font-black text-[9px] uppercase italic">Football Matrix</SelectItem>
+                        <SelectItem value="badminton" className="font-black text-[9px] uppercase italic">Badminton Node</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-               </div>
+                  <div className="space-y-4">
+                    <Label className="text-[10px] font-black uppercase tracking-widest ml-4">Deployment Date</Label>
+                    <Input 
+                      type="date"
+                      required
+                      value={formData.date}
+                      onChange={(e) => setFormData({...formData, date: e.target.value})}
+                      className="h-14 rounded-2xl bg-slate-50 border-none font-black text-[10px] uppercase px-6 italic"
+                    />
+                  </div>
+                </div>
 
-               <Button 
-                type="submit" 
-                className="w-full h-16 bg-slate-900 text-white font-black uppercase tracking-[0.4em] italic rounded-2xl shadow-2xl shadow-indigo-100 hover:bg-indigo-600 transition-all"
-                disabled={isSubmitting}
-               >
-                 {isSubmitting ? 'SECURE INGESTION...' : 'AUTHORIZE MISSION'}
-               </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <div className="space-y-4">
+                    <Label className="text-[10px] font-black uppercase tracking-widest ml-4">Personnel Assignment</Label>
+                    <div className="max-h-[150px] overflow-y-auto p-4 rounded-2xl bg-slate-50 space-y-2 no-scrollbar border-4 border-white">
+                      {players.map(player => (
+                        <div 
+                          key={player.id} 
+                          className={cn(
+                            "flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all",
+                            formData.participants.includes(player.id) ? "bg-indigo-500 text-white" : "bg-white hover:bg-slate-100"
+                          )}
+                          onClick={() => {
+                            const newParticipants = formData.participants.includes(player.id)
+                              ? formData.participants.filter(id => id !== player.id)
+                              : [...formData.participants, player.id];
+                            setFormData({...formData, participants: newParticipants});
+                          }}
+                        >
+                          <span className="text-[9px] font-black uppercase italic">{player.name}</span>
+                          {formData.participants.includes(player.id) && <Check size={12} />}
+                        </div>
+                      ))}
+                    </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  className="w-full h-16 bg-slate-900 text-white font-black uppercase tracking-[0.4em] italic rounded-2xl shadow-2xl shadow-indigo-100 hover:bg-indigo-600 transition-all"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'SECURE INGESTION...' : 'AUTHORIZE MISSION'}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">

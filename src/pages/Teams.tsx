@@ -85,7 +85,7 @@ export default function Teams() {
   const [playerSearch, setPlayerSearch] = React.useState('');
   const logoInputRef = React.useRef<HTMLInputElement>(null);
 
-  const isManagement = profile?.role === 'management';
+  const isManagement = profile?.role === 'management' || profile?.isSuperAdmin;
   const isTeamAuthority = (team: Team) => 
     isManagement || 
     profile?.uid === team.managerId || 
@@ -336,7 +336,7 @@ export default function Teams() {
                   </div>
                   {(isManagement || isTeamAuthority(team)) && (
                     <DropdownMenu>
-                      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="rounded-2xl h-12 w-12 bg-white shadow-sm border border-slate-100 hover:text-indigo-500" />}>
+                      <DropdownMenuTrigger nativeButton={false} render={<Button variant="ghost" size="icon" className="rounded-2xl h-12 w-12 bg-white shadow-sm border border-slate-100 hover:text-indigo-500" />}>
                         <MoreVertical size={22} />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56 p-3 rounded-3xl border-slate-100 shadow-2xl bg-white/95 backdrop-blur-md">

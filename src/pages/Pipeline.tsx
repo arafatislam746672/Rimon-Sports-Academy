@@ -600,7 +600,7 @@ function DropdownAction({
 }) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button 
+      <DropdownMenuTrigger nativeButton={false} render={<Button 
           variant="ghost" 
           size="icon" 
           className="w-12 h-12 p-0 border-none bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center justify-center transition-all shadow-sm focus:ring-0"
