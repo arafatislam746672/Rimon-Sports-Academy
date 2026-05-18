@@ -16,8 +16,11 @@ import Approvals from './pages/Approvals';
 import Settings from './pages/Settings';
 import Pipeline from './pages/Pipeline';
 import UserManagement from './pages/UserManagement';
+import Sponsors from './pages/Sponsors';
+import Venues from './pages/Venues';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { seedInitialData } from './lib/seed';
 
@@ -28,9 +31,10 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <BrowserRouter>
-          <Layout>
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <Layout>
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/players" element={<Players />} />
@@ -46,12 +50,15 @@ export default function App() {
               <Route path="/approvals" element={<Approvals />} />
               <Route path="/pipeline" element={<Pipeline />} />
               <Route path="/user-management" element={<UserManagement />} />
+              <Route path="/sponsors" element={<Sponsors />} />
+              <Route path="/venues" element={<Venues />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </Layout>
           <Toaster position="top-right" richColors />
         </BrowserRouter>
       </AuthProvider>
-    </ErrorBoundary>
-  );
+    </ThemeProvider>
+  </ErrorBoundary>
+);
 }

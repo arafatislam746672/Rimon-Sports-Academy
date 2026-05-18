@@ -16,7 +16,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
-import { Player, Match, Tournament, Attendance, Sport, UserProfile, MatchSubmission, PlayerStatus, Team, TopEleven, CricketScore, FootballScore, BadmintonScore } from '../types';
+import { Player, Match, Tournament, Attendance, Sport, UserProfile, UserRole, MatchSubmission, PlayerStatus, Team, TopEleven, CricketScore, FootballScore, BadmintonScore, Sponsor, Venue } from '../types';
 import { handleFirestoreError, OperationType } from '../lib/firestore-error';
 
 export const dataService = {
@@ -182,7 +182,10 @@ export const dataService = {
 
   createUserProfile: async (profile: UserProfile) => {
     try {
-      await setDoc(doc(db, 'profiles', profile.uid), profile);
+      await setDoc(doc(db, 'profiles', profile.uid), {
+        ...profile,
+        role: profile.role || UserRole.PLAYER, // Ensure role is explicitly set
+      });
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'profiles');
     }
@@ -206,13 +209,25 @@ export const dataService = {
     }
   },
 
-  getSubmissions: (callback: (submissions: MatchSubmission[]) => void) => {
+  getSubmissions: (callback: (submissions: MatchSubmission[]) => void, playerId?: string) => {
     const path = 'submissions';
-    return onSnapshot(collection(db, path), (snapshot) => {
+    let q;
+    if (playerId) {
+      q = query(collection(db, path), where('playerId', '==', playerId));
+    } else {
+      q = collection(db, path);
+    }
+    
+    return onSnapshot(q, (snapshot) => {
       const submissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as MatchSubmission));
       callback(submissions);
     }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, path);
+      // If we're not management, we expectedly can't list all submissions
+      if (!playerId) {
+         console.warn("Permission denied for submissions list. Only management can view all submissions.");
+      } else {
+         handleFirestoreError(error, OperationType.LIST, path);
+      }
     });
   },
 
@@ -464,6 +479,18 @@ export const dataService = {
       const profiles = snapshot.docs.map(doc => ({ ...doc.data() } as UserProfile));
       callback(profiles);
     }, (error) => {
+      // Don't throw for list errors if we're not authorized, just handle it gracefully
+      console.warn("Permission denied for profiles list. This is expected for standard users.");
+    });
+  },
+
+  getStaffProfiles: (callback: (profiles: UserProfile[]) => void) => {
+    const path = 'profiles';
+    const q = query(collection(db, path), where('role', '==', 'management'));
+    return onSnapshot(q, (snapshot) => {
+      const profiles = snapshot.docs.map(doc => ({ ...doc.data() } as UserProfile));
+      callback(profiles);
+    }, (error) => {
       handleFirestoreError(error, OperationType.LIST, path);
     });
   },
@@ -561,6 +588,15 @@ export const dataService = {
     }
   },
 
+  updateTournament: async (tournamentId: string, updates: Partial<Tournament>) => {
+    const path = `tournaments/${tournamentId}`;
+    try {
+      await updateDoc(doc(db, 'tournaments', tournamentId), updates);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    }
+  },
+
   // Academy / Top 11
   getTopEleven: (sport: Sport, callback: (topEleven: TopEleven | null) => void) => {
     const path = `academy/top-eleven-${sport}`;
@@ -629,5 +665,75 @@ export const dataService = {
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'standings');
     });
+  },
+
+  // Sponsors
+  getSponsors: (callback: (sponsors: Sponsor[]) => void) => {
+    const path = 'sponsors';
+    return onSnapshot(collection(db, path), (snapshot) => {
+      const sponsors = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Sponsor));
+      callback(sponsors);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, path);
+    });
+  },
+
+  addSponsor: async (sponsor: Omit<Sponsor, 'id' | 'clicks' | 'views' | 'createdAt'>) => {
+    const path = 'sponsors';
+    try {
+      const newDocRef = doc(collection(db, path));
+      await setDoc(newDocRef, {
+        ...sponsor,
+        clicks: 0,
+        views: 0,
+        createdAt: new Date().toISOString(),
+        status: 'active'
+      });
+      return newDocRef.id;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, path);
+    }
+  },
+
+  trackSponsorClick: async (sponsorId: string) => {
+    try {
+      const docRef = doc(db, 'sponsors', sponsorId);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        await updateDoc(docRef, { clicks: (snap.data().clicks || 0) + 1 });
+      }
+    } catch (error) {}
+  },
+
+  trackSponsorView: async (sponsorId: string) => {
+    try {
+      const docRef = doc(db, 'sponsors', sponsorId);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        await updateDoc(docRef, { views: (snap.data().views || 0) + 1 });
+      }
+    } catch (error) {}
+  },
+
+  // Venues
+  getVenues: (callback: (venues: Venue[]) => void) => {
+    const path = 'venues';
+    return onSnapshot(collection(db, path), (snapshot) => {
+      const venues = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Venue));
+      callback(venues);
+    }, (error) => {
+      handleFirestoreError(error, OperationType.LIST, path);
+    });
+  },
+
+  addVenue: async (venue: Omit<Venue, 'id'>) => {
+    const path = 'venues';
+    try {
+      const newDocRef = doc(collection(db, path));
+      await setDoc(newDocRef, venue);
+      return newDocRef.id;
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, path);
+    }
   }
 };

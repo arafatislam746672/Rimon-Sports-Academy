@@ -44,15 +44,19 @@ function Button({
   className,
   variant = "default",
   size = "default",
-  asChild, // Destructure to prevent leaking
+  asChild,
+  children,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
   return (
     <ButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      render={asChild ? children : undefined}
       {...props}
-    />
+    >
+      {asChild ? undefined : children}
+    </ButtonPrimitive>
   )
 }
 

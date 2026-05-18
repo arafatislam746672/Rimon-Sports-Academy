@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let userProfile = await dataService.getUserProfile(authUser.uid);
     if (!userProfile) {
       let playerId = '';
-      if (role === 'player') {
+      if (role === UserRole.PLAYER) {
         const newPlayer: Omit<Player, 'id'> = {
           name: authUser.displayName || 'New Athlete',
           joinedDate: new Date().toISOString(),
@@ -72,10 +72,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: authUser.email!,
         name: authUser.displayName || 'New User',
         role: role,
-        status: (role === 'management' || authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com') ? 'approved' : 'pending',
+        status: (role === UserRole.MANAGEMENT || authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com') ? 'approved' : 'pending',
         playerId: playerId || undefined,
         isSuperAdmin: authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com',
-        permissions: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com' || role === 'management') ? { 
+        permissions: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com' || role === UserRole.MANAGEMENT) ? { 
           fullControl: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com'),
           managePlayers: true,
           manageTeams: true,
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await updateProfile(authUser, { displayName: name });
 
     let playerId = '';
-    if (role === 'player') {
+    if (role === UserRole.PLAYER) {
       const newPlayer: Omit<Player, 'id'> = {
         name: name,
         joinedDate: new Date().toISOString(),
@@ -116,10 +116,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: authUser.email!,
       name: name,
       role: role,
-      status: (role === 'management' || authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com') ? 'approved' : 'pending',
+      status: (role === UserRole.MANAGEMENT || authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com') ? 'approved' : 'pending',
       playerId: playerId || undefined,
       isSuperAdmin: authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com',
-      permissions: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com' || role === 'management') ? { 
+      permissions: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com' || role === UserRole.MANAGEMENT) ? { 
         fullControl: (authUser.email === 'malihajahanshamme@gmail.com' || authUser.email === 'arafathislam279@gmail.com' || authUser.email === 'raisamoni7466@gmail.com'),
         managePlayers: true,
         manageTeams: true,

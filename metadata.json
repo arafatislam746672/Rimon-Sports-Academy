@@ -1,6 +1,8 @@
 {
   "name": "Rimon Sports Academy",
-  "description": "A high-performance management system for sports academies featuring multi-sport scoring, player statistics, and tournament management.",
+  "description": "An elite, high-performance management ecosystem for sports agencies featuring vibrant Bento-grid analytics, multi-sport telemetry, and professional player deployment metrics.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

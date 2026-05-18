@@ -20,7 +20,12 @@ service cloud.firestore {
     }
 
     function isAdminEmail() {
-      return isVerified() && (request.auth.token.email == "malihajahanshamme@gmail.com" || request.auth.token.email == "arafathislam279@gmail.com" || request.auth.token.email == "raisamoni7466@gmail.com");
+      return isVerified() && (
+        request.auth.token.email == "malihajahanshamme@gmail.com" || 
+        request.auth.token.email == "arafathislam279@gmail.com" || 
+        request.auth.token.email == "raisamoni7466@gmail.com" ||
+        request.auth.token.email == "mariahimu2000@gmail.com"
+      );
     }
 
     function isManagement() {
@@ -73,9 +78,15 @@ service cloud.firestore {
 
     function isValidTeam(data) {
       return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
-             data.sport in ['cricket', 'football', 'badminton'] &&
-             data.playerIds is list && data.playerIds.size() <= 50 &&
-             data.createdAt is string;
+             data.sport in ['cricket', 'football', 'badminton', 'both'] &&
+             data.playerIds is list && data.playerIds.size() <= 100 &&
+             data.createdAt is string &&
+             (!('logoURL' in data) || data.logoURL is string) &&
+             (!('description' in data) || data.description is string) &&
+             (!('captainId' in data) || data.captainId is string) &&
+             (!('coachId' in data) || data.coachId is string) &&
+             (!('managerId' in data) || data.managerId is string) &&
+             (!('tournamentIds' in data) || data.tournamentIds is list);
     }
 
     // 4. COLLECTION RULES
@@ -83,7 +94,7 @@ service cloud.firestore {
     // Profiles: Access to user's own data or for management
     match /profiles/{uid} {
       allow get: if isOwner(uid) || isManagement();
-      allow list: if isManagement();
+      allow list: if isSignedIn(); // Filtered by application logic or query
       allow create: if isOwner(uid) && isValidProfile(incoming());
       allow update: if isSuperAdmin() || (isOwner(uid) && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'photoURL', 'playerId', 'salutation', 'firstName', 'middleName', 'lastName', 'fatherName', 'motherName', 'shortBio', 'longDescription', 'dateOfBirth', 'gender', 'bloodGroup', 'religion', 'nationality', 'language', 'occupation', 'instagram', 'facebook', 'twitter', 'linkedin', 'phone', 'emergencyPhone', 'addressLine1', 'addressLine2', 'city', 'state', 'country', 'pinCode', 'jerseyName', 'jerseyNumber', 'previousExperience', 'height', 'weight', 'handedness', 'physicallyChallenged', 'idProofType', 'idNumber', 'idProofURL']));
     }
@@ -96,7 +107,7 @@ service cloud.firestore {
 
     match /teams/{teamId} {
       allow read: if true;
-      allow write: if isManagement();
+      allow write: if isManagement() && isValidTeam(incoming());
     }
 
     match /matches/{matchId} {
@@ -119,13 +130,23 @@ service cloud.firestore {
       allow write: if isManagement();
     }
 
+    match /sponsors/{sponsorId} {
+      allow read: if true;
+      allow write: if isManagement();
+    }
+
+    match /venues/{venueId} {
+      allow read: if true;
+      allow write: if isManagement();
+    }
+
     match /attendance/{attendanceId} {
       allow read: if isManagement() || (isSignedIn() && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.playerId in resource.data.presentPlayerIds);
       allow write: if isManagement();
     }
 
     match /submissions/{submissionId} {
-      allow list: if isManagement();
+      allow list: if isManagement() || (isSignedIn() && resource.data.playerId == get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.playerId);
       allow get: if isManagement() || (isSignedIn() && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.playerId == existing().playerId);
       allow create: if isSignedIn() && (isManagement() || get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.playerId == incoming().playerId);
       allow update: if hasPermission('manageProfiles');

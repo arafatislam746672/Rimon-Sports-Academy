@@ -1,4 +1,32 @@
-export type Sport = 'cricket' | 'football' | 'badminton';
+export type Sport = 'cricket' | 'football' | 'badminton' | 'both';
+
+export interface Sponsor {
+  id: string;
+  name: string;
+  logoURL: string;
+  websiteURL?: string;
+  description?: string;
+  tier: 'platinum' | 'gold' | 'silver' | 'partner';
+  status: 'active' | 'inactive';
+  clicks: number;
+  views: number;
+  createdAt: string;
+}
+
+export interface Venue {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  facilities?: string[];
+  contactPerson?: string;
+  phone?: string;
+  photoURL?: string;
+}
 
 export interface PlayerStats {
   cricket: {
@@ -100,6 +128,7 @@ export interface Match {
   status: 'upcoming' | 'live' | 'completed';
   tournamentId?: string;
   winnerId?: string;
+  venueId?: string;
 }
 
 export interface Tournament {
@@ -112,6 +141,21 @@ export interface Tournament {
   participants: string[];
   matchIds: string[];
   status: 'upcoming' | 'ongoing' | 'completed';
+  pointsConfig?: {
+    win: number;
+    draw: number;
+    loss: number;
+  };
+  bracket?: {
+    rounds: {
+      name: string;
+      matches: {
+        id: string;
+        nextMatchId?: string;
+        position: 'top' | 'bottom';
+      }[];
+    }[];
+  };
 }
 
 export interface Attendance {
@@ -155,7 +199,10 @@ export interface Standing {
   updatedAt: string;
 }
 
-export type UserRole = 'player' | 'management';
+export enum UserRole {
+  PLAYER = 'player',
+  MANAGEMENT = 'management'
+}
 export type UserStatus = 'pending' | 'approved' | 'rejected';
 
 export interface UserPermissions {

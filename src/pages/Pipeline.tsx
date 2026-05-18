@@ -70,8 +70,8 @@ const STAGES: { id: PlayerStatus, label: string, icon: any, color: string }[] = 
   { id: 'elite', label: 'Elite', icon: Award, color: 'bg-amber-500' },
   { id: 'graduate', label: 'Graduate', icon: GraduationCap, color: 'bg-green-500' },
   { id: 'suspended', label: 'Suspended', icon: AlertCircle, color: 'bg-red-500' },
-  { id: 'study', label: 'Study', icon: GraduationCap, color: 'bg-indigo-500' },
-  { id: 'jobs', label: 'Career', icon: Briefcase, color: 'bg-slate-500' }
+  { id: 'study', label: 'Study', icon: GraduationCap, color: 'bg-accent' },
+  { id: 'jobs', label: 'Career', icon: Briefcase, color: 'bg-muted/300' }
 ];
 
 export default function Pipeline() {
@@ -179,29 +179,29 @@ export default function Pipeline() {
       <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-indigo-500 rounded-2xl shadow-xl shadow-indigo-200">
-              <Workflow className="text-white" size={24} />
+            <div className="p-3 bg-accent rounded-2xl shadow-xl shadow-accent/30">
+              <Workflow className="text-primary-foreground" size={24} />
             </div>
-            <Badge className="bg-indigo-50 text-indigo-600 border-none px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest">
+            <Badge className="bg-accent/10 text-accent border-none px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest">
               Lifecycle System Active
             </Badge>
           </div>
-          <h2 className="text-5xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">
-            Strategic <span className="text-indigo-500 underline decoration-8 decoration-indigo-100 underline-offset-4">Pipeline</span>
+          <h2 className="text-5xl font-black text-foreground tracking-tighter uppercase italic leading-none">
+            Strategic <span className="text-accent underline decoration-8 decoration-accent/10 underline-offset-4">Pipeline</span>
           </h2>
-          <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.4em] flex items-center gap-3 max-w-[500px]">
+          <p className="text-muted-foreground font-bold text-[10px] uppercase tracking-[0.4em] flex items-center gap-3 max-w-[500px]">
              Talent Lifecycle Assessment • Operational Flow • Asset Deployment
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-6">
-            <div className="flex bg-white p-1.5 rounded-[24px] border border-slate-100 shadow-sm">
+            <div className="flex bg-card p-1.5 rounded-[24px] border border-border shadow-sm">
                <Button 
                 variant={viewMode === 'grid' ? 'default' : 'ghost'} 
                 onClick={() => setViewMode('grid')}
                 className={cn(
                   "rounded-2xl h-12 w-12 p-0",
-                  viewMode === 'grid' ? "bg-slate-900 text-white" : "text-slate-400"
+                  viewMode === 'grid' ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                 )}
                >
                  <Trophy size={18} />
@@ -211,7 +211,7 @@ export default function Pipeline() {
                 onClick={() => setViewMode('list')}
                 className={cn(
                   "rounded-2xl h-12 w-12 p-0",
-                  viewMode === 'list' ? "bg-slate-900 text-white" : "text-slate-400"
+                  viewMode === 'list' ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                 )}
                >
                  <Menu size={18} />
@@ -223,7 +223,7 @@ export default function Pipeline() {
                variant="outline" 
                onClick={() => setIsTopElevenOpen(true)}
                className={cn(
-                 "h-16 px-10 border-slate-200 rounded-[32px] font-black uppercase text-[10px] tracking-[0.2em] italic shadow-sm hover:bg-slate-50 transition-all flex gap-4",
+                 "h-16 px-10 border-border rounded-[32px] font-black uppercase text-[10px] tracking-[0.2em] italic shadow-sm hover:bg-muted/30 transition-all flex gap-4",
                  canManageSport(selectedSport) ? "border-amber-200 text-amber-600 bg-amber-50/30" : ""
                )}
              >
@@ -235,9 +235,9 @@ export default function Pipeline() {
              </Button>
            )}
 
-           <div className="flex flex-col xl:flex-row gap-6 items-center bg-white/50 backdrop-blur-md p-2 rounded-[36px] border border-slate-100 shadow-sm">
+           <div className="flex flex-col xl:flex-row gap-6 items-center bg-card/100 backdrop-blur-md p-2 rounded-[36px] border border-border shadow-sm">
              <div className="relative group min-w-[280px]">
-                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={20} />
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground/60 group-focus-within:text-accent transition-colors" size={20} />
                 <Input 
                   placeholder="Asset Query..." 
                   value={searchTerm}
@@ -245,31 +245,31 @@ export default function Pipeline() {
                   className="pl-16 h-14 border-none bg-transparent text-[11px] font-black uppercase tracking-tight shadow-none focus-visible:ring-0 italic"
                 />
              </div>
-             <div className="w-px h-8 bg-slate-200 hidden xl:block" />
+             <div className="w-px h-8 bg-muted-foreground/40 hidden xl:block" />
              <div className="flex items-center gap-2">
                <Select value={selectedSport} onValueChange={(val) => setSelectedSport(val as Sport | 'all')}>
-                  <SelectTrigger className="w-full sm:w-44 border-none rounded-full h-14 text-[10px] font-black uppercase tracking-widest bg-transparent shadow-none hover:bg-white/80 transition-all px-6 italic focus:ring-0">
+                  <SelectTrigger className="w-full sm:w-44 border-none rounded-full h-14 text-[10px] font-black uppercase tracking-widest bg-transparent shadow-none hover:bg-card/80 transition-all px-6 italic focus:ring-0">
                     <SelectValue placeholder="Tracks" />
                   </SelectTrigger>
                   <SelectContent className="rounded-[32px] border-none p-3 shadow-2xl font-black">
-                    <SelectItem value="all" className="font-black text-[10px] uppercase py-4 px-6 rounded-2xl italic text-slate-400">Global Track</SelectItem>
+                    <SelectItem value="all" className="font-black text-[10px] uppercase py-4 px-6 rounded-2xl italic text-muted-foreground">Global Track</SelectItem>
                     <SelectItem value="cricket" className="font-black text-[10px] uppercase py-4 px-6 rounded-2xl italic">Cricket</SelectItem>
                     <SelectItem value="football" className="font-black text-[10px] uppercase py-4 px-6 rounded-2xl italic">Football</SelectItem>
                     <SelectItem value="badminton" className="font-black text-[10px] uppercase py-4 px-6 rounded-2xl italic">Badminton</SelectItem>
                   </SelectContent>
                </Select>
 
-               <div className="w-px h-8 bg-slate-200" />
+               <div className="w-px h-8 bg-muted-foreground/40" />
 
                <Select value={selectedStage} onValueChange={(val) => setSelectedStage(val as PlayerStatus | 'all')}>
-                  <SelectTrigger className="w-full sm:w-48 border-none rounded-full h-14 text-[10px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 shadow-none hover:bg-indigo-100 transition-all px-6 italic focus:ring-0">
+                  <SelectTrigger className="w-full sm:w-48 border-none rounded-full h-14 text-[10px] font-black uppercase tracking-widest bg-accent/10 text-accent shadow-none hover:bg-accent/10 transition-all px-6 italic focus:ring-0">
                     <div className="flex items-center gap-2">
                        <Filter size={14} />
                        <SelectValue placeholder="Lifecycle Stage" />
                     </div>
                   </SelectTrigger>
                   <SelectContent className="rounded-[32px] border-none p-3 shadow-2xl font-black">
-                    <SelectItem value="all" className="font-black text-[10px] uppercase py-4 px-6 rounded-2xl italic text-slate-400">All Stages</SelectItem>
+                    <SelectItem value="all" className="font-black text-[10px] uppercase py-4 px-6 rounded-2xl italic text-muted-foreground">All Stages</SelectItem>
                     {STAGES.map(s => (
                       <SelectItem key={s.id} value={s.id} className="font-black text-[10px] uppercase py-4 px-6 rounded-2xl italic">
                         {s.label}
@@ -284,7 +284,7 @@ export default function Pipeline() {
 
       <div className="space-y-10 pb-32">
         {selectedStage !== 'all' && (
-          <div className="flex items-center gap-6 bg-slate-900 text-white p-10 rounded-[48px] shadow-2xl relative overflow-hidden">
+          <div className="flex items-center gap-6 bg-primary text-primary-foreground p-10 rounded-[48px] shadow-2xl relative overflow-hidden">
              <div className="absolute top-0 right-0 p-8 opacity-10">
                 {activeStageConfig && <activeStageConfig.icon size={120} />}
              </div>
@@ -296,9 +296,9 @@ export default function Pipeline() {
              </div>
              <div className="space-y-2">
                <h3 className="text-4xl font-black uppercase italic tracking-tighter leading-none">
-                  {activeStageConfig?.label} <span className="text-indigo-400">Sector</span>
+                  {activeStageConfig?.label} <span className="text-accent/80">Sector</span>
                </h3>
-               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em]">
+               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.4em]">
                   Displaying {filteredPlayers.length} verified assets in this track
                </p>
              </div>
@@ -320,17 +320,17 @@ export default function Pipeline() {
             ))}
           </div>
         ) : (
-          <Card className="rounded-[40px] border-none shadow-2xl overflow-hidden bg-white">
+          <Card className="rounded-[40px] border-none shadow-2xl overflow-hidden bg-card">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
-                  <thead className="bg-slate-50 border-b border-slate-100">
+                  <thead className="bg-muted/30 border-b border-border">
                     <tr>
-                      <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Personnel</th>
-                      <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Sport Discipline</th>
-                      <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Lifecycle Status</th>
-                      <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Induction</th>
-                      <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+                      <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Personnel</th>
+                      <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sport Discipline</th>
+                      <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Lifecycle Status</th>
+                      <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Induction</th>
+                      <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -340,15 +340,15 @@ export default function Pipeline() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.05 }}
-                        className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors"
+                        className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors"
                       >
                         <td className="px-10 py-6">
                            <div className="flex items-center gap-4">
-                             <Avatar className="h-12 w-12 rounded-2xl border-4 border-white shadow-lg">
+                             <Avatar className="h-12 w-12 rounded-2xl border-4 border-border shadow-lg">
                                <AvatarImage src={player.photoURL} alt={player.name} className="object-cover" />
-                               <AvatarFallback className="font-black text-slate-400">{player.name[0]}</AvatarFallback>
+                               <AvatarFallback className="font-black text-muted-foreground">{player.name[0]}</AvatarFallback>
                              </Avatar>
-                              <Link to={`/players/${player.id}`} className="flex flex-col hover:text-indigo-500 transition-colors">
+                              <Link to={`/players/${player.id}`} className="flex flex-col hover:text-accent transition-colors">
                                 <div className="flex items-center gap-2">
                                   <span className="text-[14px] font-black uppercase italic tracking-tight">{player.name}</span>
                                   <Badge variant="outline" className={cn(
@@ -359,11 +359,11 @@ export default function Pipeline() {
                                     {player.status || 'prospect'}
                                   </Badge>
                                 </div>
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ID-7492{player.id.slice(-4)}</span>
+                                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">ID-7492{player.id.slice(-4)}</span>
                               </Link>
                            </div>
                         </td>
-                        <td className="px-6 py-6 font-black text-[11px] uppercase text-slate-600 italic tracking-widest">
+                        <td className="px-6 py-6 font-black text-[11px] uppercase text-muted-foreground/80 italic tracking-widest">
                            {player.primarySport || 'CRICKET'}
                         </td>
                         <td className="px-6 py-6">
@@ -375,7 +375,7 @@ export default function Pipeline() {
                              {player.status || 'prospect'}
                            </Badge>
                         </td>
-                        <td className="px-6 py-6 font-black text-[11px] text-slate-400">
+                        <td className="px-6 py-6 font-black text-[11px] text-muted-foreground">
                            {new Date(player.joinedDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })}
                         </td>
                         <td className="px-10 py-6 text-right">
@@ -399,19 +399,19 @@ export default function Pipeline() {
         )}
 
         {filteredPlayers.length === 0 && (
-          <div className="py-40 text-center space-y-6 bg-slate-50/50 rounded-[64px] border-4 border-dashed border-slate-100">
-            <Workflow size={64} className="mx-auto text-slate-200" />
+          <div className="py-40 text-center space-y-6 bg-muted/20 rounded-[64px] border-4 border-dashed border-border">
+            <Workflow size={64} className="mx-auto text-foreground/80" />
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-slate-400 uppercase italic tracking-tighter">No Assets Detected</h3>
-              <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Adjust query parameters or lifecycle track</p>
+              <h3 className="text-2xl font-black text-muted-foreground uppercase italic tracking-tighter">No Assets Detected</h3>
+              <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">Adjust query parameters or lifecycle track</p>
             </div>
           </div>
         )}
       </div>
 
       <Dialog open={isTopElevenOpen} onOpenChange={setIsTopElevenOpen}>
-         <DialogContent className="sm:max-w-[700px] bg-white border-none rounded-[56px] p-0 overflow-hidden shadow-2xl">
-            <div className="bg-amber-500 p-12 text-white relative">
+         <DialogContent className="sm:max-w-[700px] bg-card border-none rounded-[56px] p-0 overflow-hidden shadow-2xl">
+            <div className="bg-amber-500 p-12 text-primary-foreground relative">
                <div className="absolute top-0 right-0 p-12 opacity-10">
                   <Trophy size={140} className="rotate-12" />
                </div>
@@ -427,14 +427,14 @@ export default function Pipeline() {
                     const p = players.find(player => player.id === pid);
                     if (!p) return null;
                     return (
-                      <div key={pid} className="flex items-center gap-6 p-5 bg-slate-50 rounded-[32px] border border-slate-100 group hover:bg-white hover:border-amber-200 transition-all">
-                        <Avatar className="h-14 w-14 rounded-2xl border-4 border-white shadow-lg">
+                      <div key={pid} className="flex items-center gap-6 p-5 bg-muted/30 rounded-[32px] border border-border group hover:bg-card hover:border-amber-200 transition-all">
+                        <Avatar className="h-14 w-14 rounded-2xl border-4 border-border shadow-lg">
                            <AvatarImage src={p.photoURL} className="object-cover" />
-                           <AvatarFallback className="font-black text-slate-400">{p.name[0]}</AvatarFallback>
+                           <AvatarFallback className="font-black text-muted-foreground">{p.name[0]}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                           <p className="text-lg font-black text-slate-900 tracking-tight italic uppercase">{p.name}</p>
-                           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{(p.status || 'prospect').toUpperCase()} SECTOR</p>
+                           <p className="text-lg font-black text-foreground tracking-tight italic uppercase">{p.name}</p>
+                           <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{(p.status || 'prospect').toUpperCase()} SECTOR</p>
                         </div>
                         {canManageSport(selectedSport) && (
                           <Button 
@@ -451,13 +451,13 @@ export default function Pipeline() {
                   })}
                   {(topEleven?.playerIds || []).length === 0 && (
                     <div className="py-20 text-center space-y-4">
-                       <Trophy size={48} className="mx-auto text-slate-100" />
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">No elite assets deployed to Top 11 list</p>
+                       <Trophy size={48} className="mx-auto text-muted" />
+                       <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest italic">No elite assets deployed to Top 11 list</p>
                     </div>
                   )}
                </div>
-               <DialogFooter className="pt-6 border-t border-slate-100">
-                  <Button onClick={() => setIsTopElevenOpen(false)} className="w-full bg-slate-900 text-white rounded-[24px] h-16 font-black uppercase text-[10px] tracking-widest italic hover:bg-indigo-600 transition-all shadow-2xl">
+               <DialogFooter className="pt-6 border-t border-border">
+                  <Button onClick={() => setIsTopElevenOpen(false)} className="w-full bg-primary text-primary-foreground rounded-[24px] h-16 font-black uppercase text-[10px] tracking-widest italic hover:bg-primary transition-all shadow-2xl">
                     Acknowledge Intelligence
                   </Button>
                </DialogFooter>
@@ -495,22 +495,22 @@ function PlayerPipelineCard({
       transition={{ duration: 0.5 }}
       className="group"
     >
-      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[40px] overflow-hidden bg-white hover:ring-4 hover:ring-indigo-500/10 transition-all relative">
+      <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[40px] overflow-hidden bg-card hover:ring-4 hover:ring-accent/10 transition-all relative">
         <CardContent className="p-8 space-y-6">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-5">
               <div className="relative">
                  <Avatar className={cn(
-                   "w-16 h-16 rounded-[24px] border-[6px] border-slate-50 shadow-xl transition-all duration-700 group-hover:scale-110",
+                   "w-16 h-16 rounded-[24px] border-[6px] border-border shadow-xl transition-all duration-700 group-hover:scale-110",
                    topElevenIds.includes(player.id) && "ring-4 ring-amber-400 ring-offset-2"
                  )}>
                    <AvatarImage src={player.photoURL} alt={player.name} className="object-cover" />
-                   <AvatarFallback className="bg-indigo-50 text-indigo-500 text-sm font-black">
+                   <AvatarFallback className="bg-accent/10 text-accent text-sm font-black">
                      {player.name.split(' ').map(n => n[0]).join('')}
                    </AvatarFallback>
                  </Avatar>
                  {topElevenIds.includes(player.id) && (
-                   <div className="absolute -top-2 -right-2 bg-amber-500 text-white p-1 rounded-lg border-2 border-white shadow-xl">
+                   <div className="absolute -top-2 -right-2 bg-amber-500 text-primary-foreground p-1 rounded-lg border-2 border-border shadow-xl">
                       <Star size={10} fill="currentColor" />
                    </div>
                  )}
@@ -518,12 +518,12 @@ function PlayerPipelineCard({
               <div>
                  <div className="flex items-center gap-2 mb-1">
                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                   <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest leading-none">
                       {(player.primarySport || 'cricket').toUpperCase()} CORE
                    </p>
                  </div>
                 <div className="flex flex-col gap-2">
-                  <h4 className="font-black text-slate-900 text-lg leading-tight group-hover:text-indigo-500 transition-colors uppercase tracking-tight italic">
+                  <h4 className="font-black text-foreground text-lg leading-tight group-hover:text-accent transition-colors uppercase tracking-tight italic">
                     {player.name}
                   </h4>
                   <Badge variant="outline" className={cn(
@@ -549,32 +549,32 @@ function PlayerPipelineCard({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-             <div className="p-4 bg-slate-50 rounded-[24px] border border-slate-100 group-hover:bg-white transition-all">
-                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center justify-between">
+             <div className="p-4 bg-muted/30 rounded-[24px] border border-border group-hover:bg-card transition-all">
+                <p className="text-[7px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 flex items-center justify-between">
                   Confidence <Activity size={8} />
                 </p>
                 <div className="flex items-end gap-1">
-                   <span className="text-xl font-black text-slate-900 italic leading-none">A+</span>
+                   <span className="text-xl font-black text-foreground italic leading-none">A+</span>
                    <span className="text-[8px] font-black text-emerald-500 uppercase italic">PEAK</span>
                 </div>
              </div>
-             <div className="p-4 bg-slate-50 rounded-[24px] border border-slate-100 group-hover:bg-white transition-all">
-                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Maturity</p>
-                <span className="text-xl font-black text-slate-900 italic leading-none">
+             <div className="p-4 bg-muted/30 rounded-[24px] border border-border group-hover:bg-card transition-all">
+                <p className="text-[7px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Maturity</p>
+                <span className="text-xl font-black text-foreground italic leading-none">
                    {new Date().getFullYear() - new Date(player.joinedDate).getFullYear()}y
                 </span>
              </div>
           </div>
 
-          <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
+          <div className="pt-6 border-t border-border flex items-center justify-between">
             <div className="flex flex-col">
-               <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest mb-1">Induction Protocol</span>
-               <span className="text-[10px] font-black text-slate-500 uppercase italic">
+               <span className="text-[8px] font-black text-muted-foreground/60 uppercase tracking-widest mb-1">Induction Protocol</span>
+               <span className="text-[10px] font-black text-muted-foreground uppercase italic">
                   {new Date(player.joinedDate).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
                </span>
             </div>
             <Link to={`/players/${player.id}`}>
-              <Button className="bg-slate-900 text-white rounded-[18px] h-11 px-6 text-[8px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200">
+              <Button className="bg-primary text-primary-foreground rounded-[18px] h-11 px-6 text-[8px] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-xl shadow-muted-foreground/40">
                  Full Intel
               </Button>
             </Link>
@@ -600,16 +600,16 @@ function DropdownAction({
 }) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger nativeButton={false} render={<Button 
+      <DropdownMenuTrigger nativeButton={true} render={<Button 
           variant="ghost" 
           size="icon" 
-          className="w-12 h-12 p-0 border-none bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center justify-center transition-all shadow-sm focus:ring-0"
+          className="w-12 h-12 p-0 border-none bg-muted/30 hover:bg-muted rounded-2xl flex items-center justify-center transition-all shadow-sm focus:ring-0"
         />}>
-          <MoreVertical size={22} className="text-slate-400" />
+          <MoreVertical size={22} className="text-muted-foreground" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="rounded-[32px] p-3 border-none shadow-2xl font-black min-w-[220px] bg-white">
+      <DropdownMenuContent align="end" className="rounded-[32px] p-3 border-none shadow-2xl font-black min-w-[220px] bg-card">
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="px-4 py-2 text-[8px] font-black text-slate-300 uppercase tracking-widest border-b border-slate-50 mb-2">
+          <DropdownMenuLabel className="px-4 py-2 text-[8px] font-black text-muted-foreground/60 uppercase tracking-widest border-b border-border mb-2">
             Stage Deployment
           </DropdownMenuLabel>
           {STAGES.map(s => (
@@ -618,7 +618,7 @@ function DropdownAction({
               onSelect={() => onStatusChange(player.id, s.id)}
               className={cn(
                 "font-black text-[10px] uppercase py-3.5 px-5 rounded-xl italic cursor-pointer",
-                player.status === s.id ? "bg-indigo-50 text-indigo-600" : "text-slate-600 hover:bg-slate-50"
+                player.status === s.id ? "bg-accent/10 text-accent" : "text-muted-foreground/80 hover:bg-muted/30"
               )}
             >
               Move to {s.label}
@@ -628,16 +628,16 @@ function DropdownAction({
         
         {canEditTop && (
           <>
-            <DropdownMenuSeparator className="bg-slate-50 my-2" />
+            <DropdownMenuSeparator className="bg-muted/30 my-2" />
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="px-4 py-2 text-[8px] font-black text-slate-300 uppercase tracking-widest mb-2">
+              <DropdownMenuLabel className="px-4 py-2 text-[8px] font-black text-muted-foreground/60 uppercase tracking-widest mb-2">
                 Alpha Designation
               </DropdownMenuLabel>
               <DropdownMenuItem 
                 onSelect={() => onToggleTop(player.id)}
                 className={cn(
                   "w-full flex items-center gap-3 font-black text-[10px] uppercase py-3.5 px-5 rounded-xl italic cursor-pointer",
-                  isTop ? "text-amber-600 hover:bg-amber-50" : "text-slate-600 hover:bg-slate-50"
+                  isTop ? "text-amber-600 hover:bg-amber-50" : "text-muted-foreground/80 hover:bg-muted/30"
                 )}
               >
                 <Star size={14} fill={isTop ? "currentColor" : "none"} />
